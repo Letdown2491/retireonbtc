@@ -42,7 +42,7 @@ def main():
                     "Current Age",
                     min_value=18,
                     max_value=120,
-                    value=45,
+                    value=25,
                     step=1,
                     help="Your current age in years"
                 )
@@ -69,7 +69,7 @@ def main():
             monthly_spending = st.number_input(
                 "Monthly Spending Needs (USD)",
                 min_value=1.0,
-                value=6000.0,
+                value=5000.0,
                 help="Your estimated monthly expenses in retirement"
             )
 
@@ -91,7 +91,7 @@ def main():
             inflation_rate = st.number_input(
                 "Inflation Rate (%)",
                 min_value=0.0,
-                value=5.0,
+                value=3.0,
                 help="Expected annual inflation rate"
             )
 
@@ -108,7 +108,7 @@ def main():
                 monthly_investment = st.number_input(
                     "Monthly Recurring Investment (USD)",
                     min_value=0.0,
-                    value=1000.0,
+                    value=100.0,
                     help="How much you invest in Bitcoin each month"
                 )
 
