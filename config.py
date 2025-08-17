@@ -1,0 +1,26 @@
+# config.py
+
+# Default values
+DEFAULT_CURRENT_AGE = 45
+DEFAULT_RETIREMENT_AGE = 67
+DEFAULT_LIFE_EXPECTANCY = 85
+DEFAULT_MONTHLY_SPENDING = 6000.0
+DEFAULT_BITCOIN_GROWTH_RATE = 21.0
+DEFAULT_INFLATION_RATE = 5.0
+DEFAULT_CURRENT_HOLDINGS = 0.1
+DEFAULT_MONTHLY_INVESTMENT = 1000.0
+
+# Bitcoin growth rate options
+BITCOIN_GROWTH_RATE_OPTIONS = {
+    "Moderate (21%)": 21.0,
+    "No Growth (0%)": 0.0,
+    "Conservative (10%)": 10.0,
+    "Aggressive (30%)": 30.0,
+    "Hyper Aggressive (42.5%)": 42.5
+}
+
+# Input validation ranges
+AGE_RANGE = (18, 120)
+SPENDING_MIN = 1.0
+RATE_MIN = 0.0
+HOLDINGS_MAX = 21000000.0
