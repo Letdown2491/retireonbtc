@@ -10,10 +10,13 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
 
 ## Getting Started
 1. Clone the repository:
-   ```bash
+   ```
+   bash
    git clone https://github.com/Letdown2491/retireonbtc.git
    cd retire
 2. Install dependencies:
-   ```pip install -r requirements.txt
+   ```
+   pip install -r requirements.txt
 3. Run the application:
-   ```streamlit run main.py
+   ```
+   streamlit run main.py
