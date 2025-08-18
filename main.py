@@ -134,9 +134,12 @@ def main():
                 'monthly_investment': monthly_investment
             }
 
+            # Get and cache the current Bitcoin price once
+            current_bitcoin_price = cached_get_bitcoin_price()
+
             # Perform the calculation
             bitcoin_needed, life_expectancy, total_bitcoin_holdings, future_investment_value, annual_expense_at_retirement, future_bitcoin_price, total_retirement_expenses = calculate_bitcoin_needed(
-                monthly_spending, current_age, retirement_age, life_expectancy, bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment
+                monthly_spending, current_age, retirement_age, life_expectancy, bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment, current_bitcoin_price
             )
 
         years_until_retirement = retirement_age - current_age
@@ -164,7 +167,7 @@ def main():
             col_a, col_b = st.columns(2)
             with col_a:
                 st.write("Years Until Retirement:", f"{years_until_retirement} years")
-                st.write("Current Bitcoin Price:", f"${cached_get_bitcoin_price():,.2f}")
+                st.write("Current Bitcoin Price:", f"${current_bitcoin_price:,.2f}")
                 st.write("Projected Price at Retirement:", f"${future_bitcoin_price:,.2f}")
                 st.write("Bitcoin Needed at Retirement:", f"{bitcoin_needed:.4f} BTC")
             with col_b:

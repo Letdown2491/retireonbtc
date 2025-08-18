@@ -12,10 +12,8 @@ def calculate_total_future_expenses(annual_expense, years, inflation_rate):
     return annual_expense * (((1 + inflation_rate/100)**years - 1) / (inflation_rate/100)) * (1 + inflation_rate/100)
 
 def calculate_bitcoin_needed(monthly_spending, current_age, retirement_age, life_expectancy,
-                           bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment):
-    """
-    Calculate the Bitcoin needed for retirement considering inflation and growth rates
-    """
+                           bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment, current_bitcoin_price):
+    """Calculate the Bitcoin needed for retirement considering inflation and growth rates"""
     # Calculate years until retirement and retirement duration
     years_until_retirement = retirement_age - current_age
     retirement_duration = life_expectancy - retirement_age
@@ -27,10 +25,6 @@ def calculate_bitcoin_needed(monthly_spending, current_age, retirement_age, life
     total_retirement_expenses = calculate_total_future_expenses(
         annual_expense_at_retirement, retirement_duration, inflation_rate
     )
-
-    # Get current Bitcoin price
-    from utils import get_bitcoin_price
-    current_bitcoin_price = get_bitcoin_price()
 
     # Calculate future Bitcoin price at retirement
     future_bitcoin_price = current_bitcoin_price * (1 + bitcoin_growth_rate / 100) ** years_until_retirement
