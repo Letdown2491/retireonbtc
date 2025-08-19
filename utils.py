@@ -1,11 +1,13 @@
 # utils.py
 import json
 import logging
-import random
+import secrets
 import requests
 import streamlit as st
 import time
 from datetime import datetime
+
+_secure_random = secrets.SystemRandom()
 
 def initialize_session_state():
     """Initialize the Streamlit session state variables.
@@ -80,7 +82,7 @@ def get_bitcoin_price(
                     # Wait before retrying with exponential backoff and optional jitter
                     delay = base_delay * (2 ** attempt)
                     if jitter:
-                        delay += random.uniform(0, jitter)
+                        delay += _secure_random.uniform(0, jitter)
                     time.sleep(delay)
                 continue
 
