@@ -138,27 +138,29 @@ def project_holdings_over_time(
 
     ages = range(current_age, life_expectancy + 1)
     years_until_retirement = retirement_age - current_age
+
+    growth_multiplier = 1 + bitcoin_growth_rate / 100
+    inflation_multiplier = 1 + inflation_rate / 100
+
     annual_expense_at_retirement = (
-        monthly_spending * 12 * (1 + inflation_rate / 100) ** years_until_retirement
+        monthly_spending * 12 * inflation_multiplier ** years_until_retirement
     )
 
-    holdings = []
+    holdings: list[float] = []
     btc_holdings = current_holdings
+    price = current_bitcoin_price
+    annual_expense = annual_expense_at_retirement
 
-    for year_index, age in enumerate(ages):
-        price = current_bitcoin_price * (1 + bitcoin_growth_rate / 100) ** year_index
-
+    for age in ages:
         if age < retirement_age:
             btc_holdings += (monthly_investment * 12) / price
         else:
-            expense_year = age - retirement_age
-            annual_expense = annual_expense_at_retirement * (
-                1 + inflation_rate / 100
-            ) ** expense_year
             btc_holdings -= annual_expense / price
             btc_holdings = max(btc_holdings, 0)
+            annual_expense *= inflation_multiplier
 
         holdings.append(btc_holdings)
+        price *= growth_multiplier
 
     return holdings
 
