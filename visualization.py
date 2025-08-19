@@ -3,7 +3,6 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-
 def show_progress_visualization(
     current_age: int,
     retirement_age: int,
@@ -32,8 +31,6 @@ def show_progress_visualization(
         monthly_spending: Monthly spending needs in USD at today's value.
         current_bitcoin_price: Current price of Bitcoin in USD.
     """
-
-    st.subheader("Projected Bitcoin Holdings")
 
     # Prepare time range
     ages = list(range(current_age, life_expectancy + 1))
@@ -65,8 +62,7 @@ def show_progress_visualization(
         holdings.append(btc_holdings)
 
     df = pd.DataFrame({"Age": ages, "BTC Holdings": holdings})
-
-    fig = px.line(df, x="Age", y="BTC Holdings", title="Projected Bitcoin Holdings Over Time")
+    fig = px.line(df, x="Age", y="BTC Holdings")
     st.plotly_chart(fig, use_container_width=True)
 
 def compare_scenarios(scenarios):
