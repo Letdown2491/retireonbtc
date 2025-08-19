@@ -8,13 +8,16 @@ import time
 from datetime import datetime
 
 def initialize_session_state():
-    """Initialize the Streamlit session state variables"""
-    if 'scenarios' not in st.session_state:
-        st.session_state.scenarios = []
-    if 'last_inputs' not in st.session_state:
-        st.session_state.last_inputs = {}
-    if 'clear_results' not in st.session_state:
-        st.session_state.clear_results = False
+    """Initialize the Streamlit session state variables.
+
+    Examples
+    --------
+    >>> initialize_session_state()
+    >>> st.session_state.setdefault("extra_key", "default")
+    """
+    st.session_state.setdefault("scenarios", [])
+    st.session_state.setdefault("last_inputs", {})
+    st.session_state.setdefault("clear_results", False)
 
 DEFAULT_MAX_ATTEMPTS = 3
 DEFAULT_FALLBACK_PRICE = 100_000
