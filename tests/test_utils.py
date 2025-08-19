@@ -1,0 +1,41 @@
+import os
+import sys
+import requests
+import time
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from utils import get_bitcoin_price
+
+
+def test_get_bitcoin_price_exponential_backoff(monkeypatch):
+    session_instances = []
+
+    class MockSession:
+        def __init__(self):
+            session_instances.append(self)
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            raise requests.exceptions.RequestException("boom")
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    sleep_calls = []
+
+    def mock_sleep(duration):
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(time, "sleep", mock_sleep)
+
+    price, warnings = get_bitcoin_price(max_attempts=3, base_delay=2)
+
+    assert price == 100000
+    assert len(warnings) == 4
+    assert sleep_calls == [2, 4]
+    assert len(session_instances) == 1
