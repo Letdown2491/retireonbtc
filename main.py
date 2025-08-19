@@ -12,6 +12,7 @@ from config import (
     DEFAULT_INFLATION_RATE,
     DEFAULT_CURRENT_HOLDINGS,
     DEFAULT_MONTHLY_INVESTMENT,
+    HOLDINGS_MAX,
 )
 
 @st.cache_data(ttl=300)
@@ -93,7 +94,7 @@ def main():
                 current_holdings = st.number_input(
                     "Current Bitcoin Holdings",
                     min_value=0.0,
-                    max_value=21000000.0,
+                    max_value=HOLDINGS_MAX,
                     value=DEFAULT_CURRENT_HOLDINGS,
                     help="How much Bitcoin you currently own"
                 )
