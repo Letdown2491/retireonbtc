@@ -2,25 +2,13 @@
 import streamlit as st
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import calculate_bitcoin_needed
+from validation import validate_inputs
 from functools import lru_cache
 
 # Cache the Bitcoin price for 5 minutes to reduce API calls
 @lru_cache(maxsize=None)
 def cached_get_bitcoin_price():
     return get_bitcoin_price()
-
-def validate_inputs(current_age, retirement_age, life_expectancy, monthly_spending):
-    """Validate user inputs and return True if all are valid"""
-    if current_age >= retirement_age:
-        st.error("Retirement age must be greater than current age")
-        return False
-    if retirement_age >= life_expectancy:
-        st.error("Life expectancy must be greater than retirement age")
-        return False
-    if monthly_spending <= 0:
-        st.error("Monthly spending must be greater than zero")
-        return False
-    return True
 
 def main():
     st.title("Bitcoin Retirement Calculator")
@@ -117,7 +105,13 @@ def main():
 
     # Validate inputs
     if submitted:
-        if not validate_inputs(current_age, retirement_age, life_expectancy, monthly_spending):
+        errors = validate_inputs(
+            current_age, retirement_age, life_expectancy, monthly_spending,
+            bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment
+        )
+        if errors:
+            for err in errors:
+                st.error(err)
             return
 
         # Show progress bar for calculations
