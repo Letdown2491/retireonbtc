@@ -13,6 +13,7 @@ permissions:
   security-events: write
 
 jobs:
+  # Optional: CodeQL (can remove if you don't use GHAS/private repos)
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
@@ -23,8 +24,9 @@ jobs:
           languages: python
       - uses: github/codeql-action/analyze@v3
 
-    bandit_advisory:
-    name: Bandit (advisory → SARIF, exclude tests/)
+  # Bandit in advisory mode; excludes tests/ and uploads SARIF if produced
+  bandit_advisory:
+    name: Bandit (advisory -> SARIF, exclude tests/)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,9 +34,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
-      # SARIF formatter requires the 'sarif' extra
+      # SARIF support requires the 'sarif' extra
       - run: pip install "bandit[toml,sarif]>=1.7.9"
-      - name: Run Bandit → SARIF (do not fail PR)
+      - name: Run Bandit -> SARIF (do not fail PR)
         run: |
           bandit -r . \
             --severity-level low \
@@ -47,6 +49,7 @@ jobs:
         with:
           sarif_file: bandit.sarif
 
+  # Optional: dependency vuln scan (pip-audit)
   pip-audit:
     name: pip-audit
     runs-on: ubuntu-latest
