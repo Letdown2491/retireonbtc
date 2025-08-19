@@ -3,6 +3,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from calculations import project_holdings_over_time
+
 def show_progress_visualization(
     current_age: int,
     retirement_age: int,
@@ -32,34 +34,18 @@ def show_progress_visualization(
         current_bitcoin_price: Current price of Bitcoin in USD.
     """
 
-    # Prepare time range
     ages = list(range(current_age, life_expectancy + 1))
-
-    # Calculate annual expense at the start of retirement
-    years_until_retirement = retirement_age - current_age
-    annual_expense_at_retirement = (
-        monthly_spending * 12 * (1 + inflation_rate / 100) ** years_until_retirement
+    holdings = project_holdings_over_time(
+        current_age,
+        retirement_age,
+        life_expectancy,
+        bitcoin_growth_rate,
+        inflation_rate,
+        current_holdings,
+        monthly_investment,
+        monthly_spending,
+        current_bitcoin_price,
     )
-
-    holdings = []
-    btc_holdings = current_holdings
-
-    for year_index, age in enumerate(ages):
-        price = current_bitcoin_price * (1 + bitcoin_growth_rate / 100) ** year_index
-
-        if age < retirement_age:
-            # Accumulate BTC from investments (converted at current year's price)
-            btc_holdings += (monthly_investment * 12) / price
-        else:
-            # Spend BTC to cover annual expenses during retirement
-            expense_year = age - retirement_age
-            annual_expense = annual_expense_at_retirement * (
-                1 + inflation_rate / 100
-            ) ** expense_year
-            btc_holdings -= annual_expense / price
-            btc_holdings = max(btc_holdings, 0)
-
-        holdings.append(btc_holdings)
 
     df = pd.DataFrame({"Age": ages, "BTC Holdings": holdings})
     fig = px.line(df, x="Age", y="BTC Holdings")

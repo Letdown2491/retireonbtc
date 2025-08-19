@@ -9,6 +9,7 @@ from calculations import (
     calculate_bitcoin_needed,
     calculate_future_value,
     calculate_total_future_expenses,
+    project_holdings_over_time,
 )
 
 
@@ -62,3 +63,49 @@ def test_calculate_bitcoin_needed_equivalence():
     assert plan.total_retirement_expenses == pytest.approx(total_retirement_expenses)
     assert plan.total_bitcoin_holdings == pytest.approx(total_bitcoin_holdings)
     assert plan.bitcoin_needed == pytest.approx(bitcoin_needed)
+
+
+def test_project_holdings_over_time_matches_manual_calculation():
+    params = dict(
+        current_age=30,
+        retirement_age=65,
+        life_expectancy=85,
+        bitcoin_growth_rate=5,
+        inflation_rate=2,
+        current_holdings=1.5,
+        monthly_investment=500,
+        monthly_spending=3000,
+        current_bitcoin_price=30000,
+    )
+
+    holdings = project_holdings_over_time(**params)
+
+    ages = range(params["current_age"], params["life_expectancy"] + 1)
+    years_until_retirement = params["retirement_age"] - params["current_age"]
+    annual_expense_at_retirement = (
+        params["monthly_spending"]
+        * 12
+        * (1 + params["inflation_rate"] / 100) ** years_until_retirement
+    )
+
+    expected_holdings = []
+    btc_holdings = params["current_holdings"]
+
+    for year_index, age in enumerate(ages):
+        price = params["current_bitcoin_price"] * (
+            1 + params["bitcoin_growth_rate"] / 100
+        ) ** year_index
+
+        if age < params["retirement_age"]:
+            btc_holdings += (params["monthly_investment"] * 12) / price
+        else:
+            expense_year = age - params["retirement_age"]
+            annual_expense = annual_expense_at_retirement * (
+                1 + params["inflation_rate"] / 100
+            ) ** expense_year
+            btc_holdings -= annual_expense / price
+            btc_holdings = max(btc_holdings, 0)
+
+        expected_holdings.append(btc_holdings)
+
+    assert holdings == pytest.approx(expected_holdings)
