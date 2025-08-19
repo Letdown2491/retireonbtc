@@ -17,6 +17,7 @@ from config import (
 from visualization import show_progress_visualization
 
 @st.cache_data(ttl=300)
+# Cache the Bitcoin price for 5 minutes to reduce API calls
 def cached_get_bitcoin_price():
     """Fetch and cache the current Bitcoin price for five minutes.
 
@@ -161,19 +162,6 @@ def main():
             future_bitcoin_price = plan.future_bitcoin_price
             total_retirement_expenses = plan.total_retirement_expenses
 
-        # Visualize projected Bitcoin holdings over time
-        show_progress_visualization(
-            current_age=current_age,
-            retirement_age=retirement_age,
-            life_expectancy=life_expectancy,
-            bitcoin_growth_rate=bitcoin_growth_rate,
-            inflation_rate=inflation_rate,
-            current_holdings=current_holdings,
-            monthly_investment=monthly_investment,
-            monthly_spending=monthly_spending,
-            current_bitcoin_price=current_bitcoin_price,
-        )
-
         years_until_retirement = retirement_age - current_age
         retirement_duration = life_expectancy - retirement_age
 
@@ -207,6 +195,18 @@ def main():
                 st.write("Future Value of Investments:", f"${future_investment_value:,.2f}")
                 st.write("Bitcoin from Investments:", f"{future_investment_value / future_bitcoin_price:.4f} BTC")
                 st.write("Total Retirement Expenses:", f"${total_retirement_expenses:,.2f}")
+            # Visualize projected Bitcoin holdings over time
+            show_progress_visualization(
+                current_age=current_age,
+                retirement_age=retirement_age,
+                life_expectancy=life_expectancy,
+                bitcoin_growth_rate=bitcoin_growth_rate,
+                inflation_rate=inflation_rate,
+                current_holdings=current_holdings,
+                monthly_investment=monthly_investment,
+                monthly_spending=monthly_spending,
+                current_bitcoin_price=current_bitcoin_price,
+            )
 
         with st.expander("Verification"):
             st.write(f"With ${monthly_investment:,.2f}/month investment for {years_until_retirement} years at {bitcoin_growth_rate}% growth:")
