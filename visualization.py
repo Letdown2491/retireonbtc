@@ -51,7 +51,26 @@ def show_progress_visualization(
     fig = px.line(df, x="Age", y="BTC Holdings")
     st.plotly_chart(fig, use_container_width=True)
 
-def compare_scenarios(scenarios):
+def compare_scenarios(scenarios: list[dict]) -> None:
+    """Display a side-by-side comparison of retirement scenarios.
+
+    Args:
+        scenarios: Sequence of scenario mappings. Each scenario must contain
+            the following keys:
+
+            - ``current_age``: Current age of the user.
+            - ``retirement_age``: Planned retirement age.
+            - ``life_expectancy``: Expected lifespan.
+            - ``bitcoin_needed``: Bitcoin required at retirement.
+            - ``total_bitcoin_holdings``: Projected Bitcoin holdings at
+              retirement.
+            - ``future_bitcoin_price``: Estimated Bitcoin price at retirement
+              (in USD).
+
+    Returns:
+        None
+    """
+
     st.subheader("Scenario Comparison")
     st.markdown("Compare different retirement plans side-by-side.")
 
