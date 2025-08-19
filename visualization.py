@@ -74,6 +74,15 @@ def compare_scenarios(scenarios: list[dict]) -> None:
     st.subheader("Scenario Comparison")
     st.markdown("Compare different retirement plans side-by-side.")
 
+    compare_clicked = st.button("Compare Scenarios", disabled=not scenarios)
+
+    if not scenarios:
+        st.info("No scenarios to compare.")
+        return
+
+    if not compare_clicked:
+        return
+
     # Create a DataFrame from the scenarios list
     df = pd.DataFrame(scenarios)
 
