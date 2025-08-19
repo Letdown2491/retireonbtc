@@ -1,0 +1,64 @@
+import os
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from calculations import (
+    calculate_bitcoin_needed,
+    calculate_future_value,
+    calculate_total_future_expenses,
+)
+
+
+def test_calculate_bitcoin_needed_equivalence():
+    monthly_spending = 3000
+    current_age = 30
+    retirement_age = 65
+    life_expectancy = 85
+    bitcoin_growth_rate = 5
+    inflation_rate = 2
+    current_holdings = 1.5
+    monthly_investment = 500
+    current_bitcoin_price = 30000
+
+    plan = calculate_bitcoin_needed(
+        monthly_spending,
+        current_age,
+        retirement_age,
+        life_expectancy,
+        bitcoin_growth_rate,
+        inflation_rate,
+        current_holdings,
+        monthly_investment,
+        current_bitcoin_price,
+    )
+
+    years_until_retirement = retirement_age - current_age
+    retirement_duration = life_expectancy - retirement_age
+
+    annual_expense_at_retirement = (
+        monthly_spending * 12 * (1 + inflation_rate / 100) ** years_until_retirement
+    )
+    total_retirement_expenses = calculate_total_future_expenses(
+        annual_expense_at_retirement, retirement_duration, inflation_rate
+    )
+    future_bitcoin_price = current_bitcoin_price * (
+        (1 + bitcoin_growth_rate / 100) ** years_until_retirement
+    )
+    future_investment_value = calculate_future_value(
+        monthly_investment, years_until_retirement, bitcoin_growth_rate
+    )
+    bitcoin_from_investments = future_investment_value / future_bitcoin_price
+    total_bitcoin_holdings = current_holdings + bitcoin_from_investments
+    bitcoin_needed = total_retirement_expenses / future_bitcoin_price
+
+    assert plan.annual_expense_at_retirement == pytest.approx(
+        annual_expense_at_retirement
+    )
+    assert plan.future_bitcoin_price == pytest.approx(future_bitcoin_price)
+    assert plan.future_investment_value == pytest.approx(future_investment_value)
+    assert plan.total_retirement_expenses == pytest.approx(total_retirement_expenses)
+    assert plan.total_bitcoin_holdings == pytest.approx(total_bitcoin_holdings)
+    assert plan.bitcoin_needed == pytest.approx(bitcoin_needed)
