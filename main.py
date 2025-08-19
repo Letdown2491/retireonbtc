@@ -145,9 +145,25 @@ def main():
             current_bitcoin_price = cached_get_bitcoin_price()
 
             # Perform the calculation
-            bitcoin_needed, life_expectancy, total_bitcoin_holdings, future_investment_value, annual_expense_at_retirement, future_bitcoin_price, total_retirement_expenses = calculate_bitcoin_needed(
-                monthly_spending, current_age, retirement_age, life_expectancy, bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment, current_bitcoin_price
+            plan = calculate_bitcoin_needed(
+                monthly_spending,
+                current_age,
+                retirement_age,
+                life_expectancy,
+                bitcoin_growth_rate,
+                inflation_rate,
+                current_holdings,
+                monthly_investment,
+                current_bitcoin_price,
             )
+
+            bitcoin_needed = plan.bitcoin_needed
+            life_expectancy = plan.life_expectancy
+            total_bitcoin_holdings = plan.total_bitcoin_holdings
+            future_investment_value = plan.future_investment_value
+            annual_expense_at_retirement = plan.annual_expense_at_retirement
+            future_bitcoin_price = plan.future_bitcoin_price
+            total_retirement_expenses = plan.total_retirement_expenses
 
         years_until_retirement = retirement_age - current_age
         retirement_duration = life_expectancy - retirement_age
