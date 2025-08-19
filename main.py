@@ -3,6 +3,7 @@ import streamlit as st
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import calculate_bitcoin_needed
 from validation import validate_inputs
+from config import BITCOIN_GROWTH_RATE_OPTIONS
 from datetime import datetime, timedelta
 
 _price_cache = {"price": None, "timestamp": None}
@@ -72,20 +73,12 @@ def main():
                 help="Your estimated monthly expenses in retirement"
             )
 
-            bitcoin_growth_rate_options = {
-                "Moderate (21%)": 21.0,
-                "No Growth (0%)": 0.0,
-                "Conservative (10%)": 10.0,
-                "Aggressive (30%)": 30.0,
-                "Hyper Aggressive (42.5%)": 42.5
-            }
-
             bitcoin_growth_rate_label = st.selectbox(
                 "Bitcoin Growth Rate Projection",
-                list(bitcoin_growth_rate_options.keys()),
+                list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
                 index=0
             )
-            bitcoin_growth_rate = bitcoin_growth_rate_options[bitcoin_growth_rate_label]
+            bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
 
             inflation_rate = st.number_input(
                 "Inflation Rate (%)",
