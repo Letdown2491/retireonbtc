@@ -17,15 +17,22 @@ class RetirementPlan:
 
 
 def calculate_future_value(
-    monthly_investment, years, annual_growth_rate=None, growth_factor=None
+    monthly_investment, years, *, annual_growth_rate=None, growth_factor=None
 ):
-    """Calculate future value of regular monthly investments with monthly compounding"""
+    """Calculate future value of regular monthly investments with monthly compounding.
+
+    Exactly one of ``annual_growth_rate`` or ``growth_factor`` must be provided.
+    """
+    if (annual_growth_rate is None) == (growth_factor is None):
+        raise ValueError(
+            "Provide exactly one of annual_growth_rate or growth_factor"
+        )
     if growth_factor is not None:
         if years <= 0:
             annual_growth_rate = 0
         else:
             annual_growth_rate = (growth_factor ** (1 / years) - 1) * 100
-    if annual_growth_rate in (None, 0):
+    if annual_growth_rate == 0:
         return monthly_investment * years * 12
     monthly_rate = annual_growth_rate / 100 / 12
     return monthly_investment * (((1 + monthly_rate) ** (years * 12) - 1) / monthly_rate) * (1 + monthly_rate)
@@ -74,7 +81,9 @@ def calculate_bitcoin_needed(
 
     # Calculate future value of monthly investments in dollars
     future_investment_value = calculate_future_value(
-        monthly_investment, years_until_retirement, growth_factor=growth_factor
+        monthly_investment,
+        years_until_retirement,
+        annual_growth_rate=bitcoin_growth_rate,
     )
 
     # Calculate how many Bitcoin the investments will buy at retirement

@@ -49,7 +49,9 @@ def test_calculate_bitcoin_needed_equivalence():
         (1 + bitcoin_growth_rate / 100) ** years_until_retirement
     )
     future_investment_value = calculate_future_value(
-        monthly_investment, years_until_retirement, bitcoin_growth_rate
+        monthly_investment,
+        years_until_retirement,
+        annual_growth_rate=bitcoin_growth_rate,
     )
     bitcoin_from_investments = future_investment_value / future_bitcoin_price
     total_bitcoin_holdings = current_holdings + bitcoin_from_investments
@@ -109,3 +111,12 @@ def test_project_holdings_over_time_matches_manual_calculation():
         expected_holdings.append(btc_holdings)
 
     assert holdings == pytest.approx(expected_holdings)
+
+
+def test_calculate_future_value_requires_single_parameter():
+    with pytest.raises(ValueError):
+        calculate_future_value(100, 10)
+    with pytest.raises(ValueError):
+        calculate_future_value(
+            100, 10, annual_growth_rate=5, growth_factor=1.5
+        )
