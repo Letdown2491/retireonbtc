@@ -93,3 +93,63 @@ def calculate_bitcoin_needed(
         total_retirement_expenses=total_retirement_expenses,
     )
 
+
+def project_holdings_over_time(
+    current_age: int,
+    retirement_age: int,
+    life_expectancy: int,
+    bitcoin_growth_rate: float,
+    inflation_rate: float,
+    current_holdings: float,
+    monthly_investment: float,
+    monthly_spending: float,
+    current_bitcoin_price: float,
+) -> list[float]:
+    """Project Bitcoin holdings for each year.
+
+    This helper mirrors the accumulation and spending logic from
+    :func:`calculate_bitcoin_needed` by converting yearly investments to BTC
+    before retirement and deducting inflated expenses during retirement.
+
+    Args:
+        current_age: User's current age.
+        retirement_age: Target retirement age.
+        life_expectancy: Expected lifespan.
+        bitcoin_growth_rate: Annual Bitcoin growth rate in percent.
+        inflation_rate: Annual inflation rate in percent.
+        current_holdings: Current Bitcoin holdings in BTC.
+        monthly_investment: Monthly investment amount in USD.
+        monthly_spending: Monthly spending requirement in USD (today's value).
+        current_bitcoin_price: Current Bitcoin price in USD.
+
+    Returns:
+        A list of BTC holdings for each year from ``current_age`` up to and
+        including ``life_expectancy``.
+    """
+
+    ages = range(current_age, life_expectancy + 1)
+    years_until_retirement = retirement_age - current_age
+    annual_expense_at_retirement = (
+        monthly_spending * 12 * (1 + inflation_rate / 100) ** years_until_retirement
+    )
+
+    holdings = []
+    btc_holdings = current_holdings
+
+    for year_index, age in enumerate(ages):
+        price = current_bitcoin_price * (1 + bitcoin_growth_rate / 100) ** year_index
+
+        if age < retirement_age:
+            btc_holdings += (monthly_investment * 12) / price
+        else:
+            expense_year = age - retirement_age
+            annual_expense = annual_expense_at_retirement * (
+                1 + inflation_rate / 100
+            ) ** expense_year
+            btc_holdings -= annual_expense / price
+            btc_holdings = max(btc_holdings, 0)
+
+        holdings.append(btc_holdings)
+
+    return holdings
+
