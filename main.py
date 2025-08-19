@@ -14,6 +14,7 @@ from config import (
     DEFAULT_MONTHLY_INVESTMENT,
     HOLDINGS_MAX,
 )
+from visualization import show_progress_visualization
 
 @st.cache_data(ttl=300)
 def cached_get_bitcoin_price():
@@ -159,6 +160,19 @@ def main():
             annual_expense_at_retirement = plan.annual_expense_at_retirement
             future_bitcoin_price = plan.future_bitcoin_price
             total_retirement_expenses = plan.total_retirement_expenses
+
+        # Visualize projected Bitcoin holdings over time
+        show_progress_visualization(
+            current_age=current_age,
+            retirement_age=retirement_age,
+            life_expectancy=life_expectancy,
+            bitcoin_growth_rate=bitcoin_growth_rate,
+            inflation_rate=inflation_rate,
+            current_holdings=current_holdings,
+            monthly_investment=monthly_investment,
+            monthly_spending=monthly_spending,
+            current_bitcoin_price=current_bitcoin_price,
+        )
 
         years_until_retirement = retirement_age - current_age
         retirement_duration = life_expectancy - retirement_age
