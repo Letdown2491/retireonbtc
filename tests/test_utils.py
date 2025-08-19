@@ -2,6 +2,7 @@ import os
 import sys
 import requests
 import time
+import json
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -39,3 +40,55 @@ def test_get_bitcoin_price_exponential_backoff(monkeypatch):
     assert len(warnings) == 4
     assert sleep_calls == [2, 4]
     assert len(session_instances) == 1
+
+
+def test_get_bitcoin_price_malformed_json(monkeypatch):
+    class MockResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            raise json.JSONDecodeError("Expecting value", "", 0)
+
+    class MockSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            return MockResponse()
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    price, warnings = get_bitcoin_price(max_attempts=1)
+
+    assert price == 100000
+    assert len(warnings) == 2
+
+
+def test_get_bitcoin_price_missing_price(monkeypatch):
+    class MockResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {}
+
+    class MockSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            return MockResponse()
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    price, warnings = get_bitcoin_price(max_attempts=1)
+
+    assert price == 100000
+    assert len(warnings) == 2
