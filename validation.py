@@ -30,7 +30,7 @@ def validate_inputs(current_age, retirement_age, life_expectancy, monthly_spendi
     if monthly_investment < RATE_MIN:
         errors.append("Monthly investment cannot be negative")
 
-    if bitcoin_growth_rate > RATE_MIN and monthly_investment == RATE_MIN:
-        errors.append("Monthly investment must be positive if growth rate is positive")
+    # Zero monthly investment is allowed regardless of growth rate. Negative
+    # values remain invalid and are handled above.
 
     return errors
