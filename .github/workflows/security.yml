@@ -32,7 +32,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
-      - run: pip install "bandit[toml]>=1.7.9"
+      # Install Bandit with SARIF + TOML extras so -f sarif works
+      - run: pip install "bandit[toml,sarif]>=1.7.9"
       - name: Run Bandit → SARIF (do not fail PR)
         run: |
           bandit -r . \
@@ -40,7 +41,9 @@ jobs:
             --confidence-level low \
             -x tests,.venv,venv,build,dist,.git,__pycache__ \
             -f sarif -o bandit.sarif || true
+      # Only upload if the file exists (prevents 'Path does not exist' errors)
       - name: Upload SARIF to code scanning
+        if: hashFiles('bandit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: bandit.sarif
