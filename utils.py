@@ -1,4 +1,5 @@
 # utils.py
+import json
 import logging
 import random
 import requests
@@ -53,14 +54,19 @@ def get_bitcoin_price(
                 response.raise_for_status()
 
                 data = response.json()
-                current_price = data.get("Price")
+                current_price = float(data["Price"])
 
-                if current_price is None or float(current_price) <= 0:
+                if current_price <= 0:
                     raise ValueError("Received invalid price")
 
-                return float(current_price), warnings
+                return current_price, warnings
 
-            except requests.exceptions.RequestException as e:
+            except (
+                requests.exceptions.RequestException,
+                ValueError,
+                KeyError,
+                json.JSONDecodeError,
+            ) as e:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 message = (
                     f"[{timestamp}] Attempt {attempt + 1} failed to get Bitcoin price: {str(e)}"
