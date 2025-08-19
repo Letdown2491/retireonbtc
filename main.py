@@ -13,23 +13,11 @@ from config import (
     DEFAULT_CURRENT_HOLDINGS,
     DEFAULT_MONTHLY_INVESTMENT,
 )
-from datetime import datetime, timedelta
 
-_price_cache = {"price": None, "timestamp": None}
-_CACHE_DURATION = timedelta(minutes=5)
-
-# Cache the Bitcoin price for 5 minutes to reduce API calls
+@st.cache_data(ttl=300)
 def cached_get_bitcoin_price():
-    """Return Bitcoin price, refreshing the cache if it's older than five minutes."""
-    now = datetime.now()
-    if (
-        _price_cache["price"] is None
-        or _price_cache["timestamp"] is None
-        or now - _price_cache["timestamp"] > _CACHE_DURATION
-    ):
-        _price_cache["price"] = get_bitcoin_price()
-        _price_cache["timestamp"] = now
-    return _price_cache["price"]
+    """Fetch and cache the current Bitcoin price for five minutes."""
+    return get_bitcoin_price()
 
 def main():
     st.title("Bitcoin Retirement Calculator")
