@@ -2,6 +2,8 @@
 
 A Streamlit application to help you plan your retirement using Bitcoin as an investment vehicle.
 
+[![Security](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml)
+
 ## Features
 - Calculate how much Bitcoin you need to retire
 - Project future Bitcoin prices
