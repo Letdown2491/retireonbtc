@@ -9,7 +9,10 @@ def calculate_future_value(monthly_investment, years, annual_growth_rate):
 
 def calculate_total_future_expenses(annual_expense, years, inflation_rate):
     """Calculate total future expenses with inflation"""
-    return annual_expense * (((1 + inflation_rate/100)**years - 1) / (inflation_rate/100)) * (1 + inflation_rate/100)
+    rate = inflation_rate / 100
+    if rate == 0:
+        return annual_expense * years
+    return annual_expense * (((1 + rate)**years - 1) / rate) * (1 + rate)
 
 def calculate_bitcoin_needed(monthly_spending, current_age, retirement_age, life_expectancy,
                            bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment, current_bitcoin_price):
