@@ -70,16 +70,22 @@ def compare_scenarios(scenarios):
     st.markdown("Compare different retirement plans side-by-side.")
 
     # Create a DataFrame from the scenarios list
-    df = pd.DataFrame({
-        "Scenario": [f"Scenario {i+1}" for i, s in enumerate(scenarios)],
-        "Current Age": [s["current_age"] for s in scenarios],
-        "Retirement Age": [s["retirement_age"] for s in scenarios],
-        # Correct the syntax here
-        "Life Expectancy": [s["life_expectancy"] for s in scenarios],
-        "Bitcoin Needed (BTC)": [s["bitcoin_needed"] for s in scenarios],
-        "Total Bitcoin Holdings (BTC)": [s["total_bitcoin_holdings"] for s in scenarios],
-        "Future Bitcoin Price (USD)": [s["future_bitcoin_price"] for s in scenarios],
-    })
+    df = pd.DataFrame(scenarios)
+
+    # Add a scenario label column for user-friendly display
+    df.insert(0, "Scenario", [f"Scenario {i + 1}" for i in range(len(df))])
+
+    # Rename columns to user-facing labels
+    df = df.rename(
+        columns={
+            "current_age": "Current Age",
+            "retirement_age": "Retirement Age",
+            "life_expectancy": "Life Expectancy",
+            "bitcoin_needed": "Bitcoin Needed (BTC)",
+            "total_bitcoin_holdings": "Total Bitcoin Holdings (BTC)",
+            "future_bitcoin_price": "Future Bitcoin Price (USD)",
+        }
+    )
 
     # Display the DataFrame
     st.dataframe(df)
@@ -91,6 +97,6 @@ def compare_scenarios(scenarios):
         y=["Bitcoin Needed (BTC)", "Total Bitcoin Holdings (BTC)"],
         title="Bitcoin Needed vs. Projected Holdings",
         barmode="group",
-        labels={"value": "Bitcoin (BTC)", "variable": "Metric"}
+        labels={"value": "Bitcoin (BTC)", "variable": "Metric"},
     )
     st.plotly_chart(fig)
