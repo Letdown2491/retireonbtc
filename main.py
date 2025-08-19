@@ -16,7 +16,11 @@ from config import (
 
 @st.cache_data(ttl=300)
 def cached_get_bitcoin_price():
-    """Fetch and cache the current Bitcoin price for five minutes."""
+    """Fetch and cache the current Bitcoin price for five minutes.
+
+    Returns:
+        tuple: (price, warnings) returned from ``get_bitcoin_price``
+    """
     return get_bitcoin_price()
 
 def main():
@@ -130,7 +134,9 @@ def main():
             }
 
             # Get and cache the current Bitcoin price once
-            current_bitcoin_price = cached_get_bitcoin_price()
+            current_bitcoin_price, price_warnings = cached_get_bitcoin_price()
+            for warning_msg in price_warnings:
+                st.warning(warning_msg)
 
             # Perform the calculation
             plan = calculate_bitcoin_needed(
