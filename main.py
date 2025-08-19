@@ -3,7 +3,16 @@ import streamlit as st
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import calculate_bitcoin_needed
 from validation import validate_inputs
-from config import BITCOIN_GROWTH_RATE_OPTIONS
+from config import (
+    BITCOIN_GROWTH_RATE_OPTIONS,
+    DEFAULT_CURRENT_AGE,
+    DEFAULT_RETIREMENT_AGE,
+    DEFAULT_LIFE_EXPECTANCY,
+    DEFAULT_MONTHLY_SPENDING,
+    DEFAULT_INFLATION_RATE,
+    DEFAULT_CURRENT_HOLDINGS,
+    DEFAULT_MONTHLY_INVESTMENT,
+)
 from datetime import datetime, timedelta
 
 _price_cache = {"price": None, "timestamp": None}
@@ -42,7 +51,7 @@ def main():
                     "Current Age",
                     min_value=18,
                     max_value=120,
-                    value=25,
+                    value=DEFAULT_CURRENT_AGE,
                     step=1,
                     help="Your current age in years"
                 )
@@ -51,7 +60,7 @@ def main():
                     "Retirement Age",
                     min_value=int(current_age)+1,
                     max_value=120,
-                    value=67,
+                    value=DEFAULT_RETIREMENT_AGE,
                     step=1,
                     help="The age at which you plan to retire"
                 )
@@ -60,7 +69,7 @@ def main():
                     "Life Expectancy",
                     min_value=int(retirement_age)+1,
                     max_value=120,
-                    value=85,
+                    value=DEFAULT_LIFE_EXPECTANCY,
                     step=1,
                     help="Your expected lifespan in years"
                 )
@@ -69,7 +78,7 @@ def main():
             monthly_spending = st.number_input(
                 "Monthly Spending Needs (USD)",
                 min_value=1.0,
-                value=5000.0,
+                value=DEFAULT_MONTHLY_SPENDING,
                 help="Your estimated monthly expenses in retirement"
             )
 
@@ -83,7 +92,7 @@ def main():
             inflation_rate = st.number_input(
                 "Inflation Rate (%)",
                 min_value=0.0,
-                value=3.0,
+                value=DEFAULT_INFLATION_RATE,
                 help="Expected annual inflation rate"
             )
 
@@ -93,14 +102,14 @@ def main():
                     "Current Bitcoin Holdings",
                     min_value=0.0,
                     max_value=21000000.0,
-                    value=0.1,
+                    value=DEFAULT_CURRENT_HOLDINGS,
                     help="How much Bitcoin you currently own"
                 )
             with col7:
                 monthly_investment = st.number_input(
                     "Monthly Recurring Investment (USD)",
                     min_value=0.0,
-                    value=100.0,
+                    value=DEFAULT_MONTHLY_INVESTMENT,
                     help="How much you invest in Bitcoin each month"
                 )
 
