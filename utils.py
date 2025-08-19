@@ -1,5 +1,6 @@
 # utils.py
 import logging
+import random
 import requests
 import streamlit as st
 import time
@@ -14,13 +15,25 @@ def initialize_session_state():
     if 'clear_results' not in st.session_state:
         st.session_state.clear_results = False
 
-def get_bitcoin_price(max_attempts=3, base_delay=2):
+DEFAULT_MAX_ATTEMPTS = 3
+DEFAULT_FALLBACK_PRICE = 100_000
+
+
+def get_bitcoin_price(
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    base_delay: float = 2,
+    fallback_price: float = DEFAULT_FALLBACK_PRICE,
+    jitter: float = 0,
+):
     """Fetch the current Bitcoin price from DIA API with retry logic.
 
     Args:
         max_attempts (int): Maximum number of attempts to fetch the price.
         base_delay (int | float): Base delay in seconds used for exponential
             backoff between retry attempts.
+        fallback_price (float): Price to return if all attempts fail.
+        jitter (float): Maximum additional random delay in seconds added to the
+            backoff. Set to ``0`` to disable jitter.
 
     Returns:
         tuple: (price, warnings) where price is the current Bitcoin price in USD
@@ -55,15 +68,18 @@ def get_bitcoin_price(max_attempts=3, base_delay=2):
                 logging.warning(message)
                 warnings.append(message)
                 if attempt < max_attempts - 1:
-                    # Wait before retrying with exponential backoff
-                    time.sleep(base_delay ** (attempt + 1))
+                    # Wait before retrying with exponential backoff and optional jitter
+                    delay = base_delay * (2 ** attempt)
+                    if jitter:
+                        delay += random.uniform(0, jitter)
+                    time.sleep(delay)
                 continue
 
     # If all attempts fail, use a fallback price
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     message = (
-        f"[{timestamp}] Failed to fetch current Bitcoin price after {max_attempts} attempts. Using fallback price of $100,000"
+        f"[{timestamp}] Failed to fetch current Bitcoin price after {max_attempts} attempts. Using fallback price of ${fallback_price:,}"
     )
     logging.warning(message)
     warnings.append(message)
-    return 100000, warnings  # Default fallback price
+    return fallback_price, warnings
