@@ -3,12 +3,23 @@ import streamlit as st
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import calculate_bitcoin_needed
 from validation import validate_inputs
-from functools import lru_cache
+from datetime import datetime, timedelta
+
+_price_cache = {"price": None, "timestamp": None}
+_CACHE_DURATION = timedelta(minutes=5)
 
 # Cache the Bitcoin price for 5 minutes to reduce API calls
-@lru_cache(maxsize=None)
 def cached_get_bitcoin_price():
-    return get_bitcoin_price()
+    """Return Bitcoin price, refreshing the cache if it's older than five minutes."""
+    now = datetime.now()
+    if (
+        _price_cache["price"] is None
+        or _price_cache["timestamp"] is None
+        or now - _price_cache["timestamp"] > _CACHE_DURATION
+    ):
+        _price_cache["price"] = get_bitcoin_price()
+        _price_cache["timestamp"] = now
+    return _price_cache["price"]
 
 def main():
     st.title("Bitcoin Retirement Calculator")
