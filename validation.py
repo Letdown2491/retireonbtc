@@ -15,8 +15,8 @@ def validate_inputs(current_age, retirement_age, life_expectancy, monthly_spendi
     if life_expectancy <= retirement_age or not AGE_RANGE[0] <= life_expectancy <= AGE_RANGE[1]:
         errors.append(f"Life expectancy must be greater than retirement age and between {AGE_RANGE[0]} and {AGE_RANGE[1]}")
 
-    if monthly_spending <= SPENDING_MIN:
-        errors.append(f"Monthly spending needs must be positive")
+    if monthly_spending < SPENDING_MIN:
+        errors.append(f"Monthly spending must be at least {SPENDING_MIN}")
 
     if bitcoin_growth_rate < RATE_MIN:
         errors.append("Bitcoin growth rate cannot be negative")
