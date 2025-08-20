@@ -29,7 +29,10 @@ def calculate_future_value(
     """Calculate future value of regular monthly investments with monthly compounding.
 
     Exactly one of ``annual_growth_rate`` or ``growth_factor`` must be provided.
+    ``years`` must be non-negative.
     """
+    if years < 0:
+        raise ValueError("years must be non-negative")
     if (annual_growth_rate is None) == (growth_factor is None):
         raise ValueError(
             "Provide exactly one of annual_growth_rate or growth_factor"
