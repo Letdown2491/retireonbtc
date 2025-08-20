@@ -26,7 +26,7 @@ class DummyStreamlit:
 
 def test_render_results_returns_health_score(monkeypatch):
     monkeypatch.setattr(main, "st", DummyStreamlit())
-    monkeypatch.setattr(main, "show_progress_visualization", lambda **kwargs: None)
+    monkeypatch.setattr(main, "show_progress_visualization", lambda *args, **kwargs: None)
     monkeypatch.setattr(main, "project_holdings_over_time", lambda **kwargs: [3, 2, 1, 0])
 
     plan = RetirementPlan(

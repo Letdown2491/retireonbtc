@@ -28,6 +28,7 @@ def test_progress_visualization_smoke():
         assert show(series) is None  # Precomputed holdings
         assert (
             show(
+                None,
                 current_age=35,
                 retirement_age=65,
                 life_expectancy=85,
