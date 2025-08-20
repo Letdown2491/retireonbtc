@@ -226,7 +226,8 @@ def render_results(plan, inputs, current_bitcoin_price):
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
             f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
             f"(about ${total_retirement_expenses:,.2f}). "
-            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
+            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
+            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
         )
     else:
         additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
@@ -237,7 +238,8 @@ def render_results(plan, inputs, current_bitcoin_price):
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
             f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
             f"(about ${total_retirement_expenses:,.2f}). "
-            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
+            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
+            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
         )
     st.write(result)
 
