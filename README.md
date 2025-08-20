@@ -9,6 +9,7 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
 - Project future Bitcoin prices
 - Analyze different growth rate scenarios
 - Track your progress towards retirement
+- Validate that retirement age does not exceed life expectancy
 
 ## Getting Started
 1. Clone the repository:

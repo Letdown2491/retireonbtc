@@ -144,7 +144,13 @@ def project_holdings_over_time(
     Returns:
         A list of BTC holdings for each year from ``current_age`` up to and
         including ``life_expectancy``.
+
+    Raises:
+        ValueError: If ``retirement_age`` exceeds ``life_expectancy``.
     """
+
+    if retirement_age > life_expectancy:
+        raise ValueError("retirement_age must be less than or equal to life_expectancy")
 
     ages = range(current_age, life_expectancy + 1)
     years_until_retirement = retirement_age - current_age

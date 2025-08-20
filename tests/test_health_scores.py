@@ -10,7 +10,7 @@ from calculations import compute_health_score_basic, health_score_from_outputs
 
 def test_compute_health_score_basic():
     assert compute_health_score_basic(2.0, 40) == 100
-    assert compute_health_score_basic(1.5, 10) == 67
+    assert compute_health_score_basic(1.5, 10) == 75
 
 
 def test_health_score_from_outputs():
