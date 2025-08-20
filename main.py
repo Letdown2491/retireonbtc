@@ -17,6 +17,7 @@ from config import (
     DEFAULT_CURRENT_HOLDINGS,
     DEFAULT_MONTHLY_INVESTMENT,
     HOLDINGS_MAX,
+    AGE_RANGE,
 )
 from visualization import show_progress_visualization
 
@@ -41,8 +42,8 @@ def render_form():
             with col1:
                 current_age = st.number_input(
                     "Current Age",
-                    min_value=18,
-                    max_value=120,
+                    min_value=AGE_RANGE[0],
+                    max_value=AGE_RANGE[1],
                     value=DEFAULT_CURRENT_AGE,
                     step=1,
                     help="Your current age in years",
@@ -50,8 +51,8 @@ def render_form():
             with col2:
                 retirement_age = st.number_input(
                     "Retirement Age",
-                    min_value=int(current_age) + 1,
-                    max_value=120,
+                    min_value=max(int(current_age) + 1, AGE_RANGE[0]),
+                    max_value=AGE_RANGE[1],
                     value=DEFAULT_RETIREMENT_AGE,
                     step=1,
                     help="The age at which you plan to retire",
@@ -59,8 +60,8 @@ def render_form():
             with col3:
                 life_expectancy = st.number_input(
                     "Life Expectancy",
-                    min_value=int(retirement_age) + 1,
-                    max_value=120,
+                    min_value=max(int(retirement_age) + 1, AGE_RANGE[0]),
+                    max_value=AGE_RANGE[1],
                     value=DEFAULT_LIFE_EXPECTANCY,
                     step=1,
                     help="Your expected lifespan in years",
