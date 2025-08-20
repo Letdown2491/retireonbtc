@@ -146,6 +146,8 @@ def render_calculator():
                 st.session_state.results_available = True
                 st.session_state.results_expanded = True
                 st.session_state.calculator_expanded = False
+                # Rerun so the updated expander states take effect immediately
+                st.rerun()
 
 
 def validate_form_inputs(inputs):
