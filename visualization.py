@@ -8,8 +8,7 @@ from calculations import project_holdings_over_time
 
 
 def show_progress_visualization(
-    holdings: Sequence | None = None,
-    *,
+    holdings: Sequence | None,
     current_age: int | None = None,
     retirement_age: int | None = None,
     life_expectancy: int | None = None,
@@ -22,14 +21,13 @@ def show_progress_visualization(
 ) -> None:
     """Visualize projected Bitcoin holdings over time.
 
-    Parameters can be supplied either as a precomputed ``holdings`` series or
-    individually to run :func:`project_holdings_over_time`. When using the
-    second form all parameters are required.
+    The first argument is a holdings sequence representing BTC holdings by age.
+    If ``holdings`` is ``None`` the sequence will be derived from the supplied
+    parameters via :func:`project_holdings_over_time`. When only a holdings
+    series is provided the ages are inferred from the series itself.
     """
 
-    if holdings is not None:
-        ages = list(range(len(holdings)))
-    else:
+    if holdings is None:
         required = [
             current_age,
             retirement_age,
@@ -56,8 +54,18 @@ def show_progress_visualization(
             monthly_spending,
             current_bitcoin_price,
         )
+    else:
+        if isinstance(holdings, pd.Series):
+            ages = holdings.index
+            holdings = holdings.values
+        else:
+            holdings = list(holdings)
+            if current_age is not None:
+                ages = range(current_age, current_age + len(holdings))
+            else:
+                ages = range(len(holdings))
 
-    df = pd.DataFrame({"Age": ages, "BTC Holdings": holdings})
+    df = pd.DataFrame({"Age": list(ages), "BTC Holdings": list(holdings)})
     fig = px.line(df, x="Age", y="BTC Holdings")
     st.plotly_chart(fig, use_container_width=True)
 

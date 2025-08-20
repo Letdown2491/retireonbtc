@@ -213,15 +213,8 @@ def render_results(plan, inputs, current_bitcoin_price):
         st.write(result)
 
         show_progress_visualization(
+            holdings_series,
             current_age=inputs["current_age"],
-            retirement_age=inputs["retirement_age"],
-            life_expectancy=life_expectancy,
-            bitcoin_growth_rate=inputs["bitcoin_growth_rate"],
-            inflation_rate=inputs["inflation_rate"],
-            current_holdings=inputs["current_holdings"],
-            monthly_investment=inputs["monthly_investment"],
-            monthly_spending=inputs["monthly_spending"],
-            current_bitcoin_price=current_bitcoin_price,
         )
 
     st.warning(
