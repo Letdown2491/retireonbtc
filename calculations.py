@@ -29,7 +29,10 @@ def calculate_future_value(
     """Calculate future value of regular monthly investments with monthly compounding.
 
     Exactly one of ``annual_growth_rate`` or ``growth_factor`` must be provided.
+    ``years`` must be non-negative.
     """
+    if years < 0:
+        raise ValueError("years must be non-negative")
     if (annual_growth_rate is None) == (growth_factor is None):
         raise ValueError(
             "Provide exactly one of annual_growth_rate or growth_factor"
@@ -177,12 +180,12 @@ def compute_health_score_basic(funding_ratio: float, runway_years: float) -> int
 
     The funding ratio represents available BTC divided by BTC required. Values
     are capped at ``1.5`` (150%). Runway years indicate how long funds last
-    after retirement and are normalized against a 30-year horizon. The final
+    after retirement and are normalized against a 20-year horizon. The final
     score is an integer in the range ``0`` to ``100``.
     """
 
     funding_component = _clamp(funding_ratio, 0.0, 1.5) / 1.5
-    runway_component = _clamp(runway_years / 30.0, 0.0, 1.0)
+    runway_component = _clamp(runway_years / 20.0, 0.0, 1.0)
     score = (funding_component + runway_component) / 2 * 100
     return int(round(_clamp(score, 0.0, 100.0)))
 
