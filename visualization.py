@@ -2,50 +2,60 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+from collections.abc import Sequence
 
 from calculations import project_holdings_over_time
 
+
 def show_progress_visualization(
-    current_age: int,
-    retirement_age: int,
-    life_expectancy: int,
-    bitcoin_growth_rate: float,
-    inflation_rate: float,
-    current_holdings: float,
-    monthly_investment: float,
-    monthly_spending: float,
-    current_bitcoin_price: float,
-):
+    holdings: Sequence | None = None,
+    *,
+    current_age: int | None = None,
+    retirement_age: int | None = None,
+    life_expectancy: int | None = None,
+    bitcoin_growth_rate: float | None = None,
+    inflation_rate: float | None = None,
+    current_holdings: float | None = None,
+    monthly_investment: float | None = None,
+    monthly_spending: float | None = None,
+    current_bitcoin_price: float | None = None,
+) -> None:
     """Visualize projected Bitcoin holdings over time.
 
-    The projection mirrors the calculations in ``calculate_bitcoin_needed`` by
-    accounting for investment growth before retirement and withdrawals to cover
-    expenses after retirement.
-
-    Args:
-        current_age: User's current age.
-        retirement_age: Age at which the user plans to retire.
-        life_expectancy: Expected lifespan.
-        bitcoin_growth_rate: Expected annual growth rate of Bitcoin (percentage).
-        inflation_rate: Expected annual inflation rate (percentage).
-        current_holdings: Current Bitcoin holdings in BTC.
-        monthly_investment: Recurring monthly investment in USD.
-        monthly_spending: Monthly spending needs in USD at today's value.
-        current_bitcoin_price: Current price of Bitcoin in USD.
+    Parameters can be supplied either as a precomputed ``holdings`` series or
+    individually to run :func:`project_holdings_over_time`. When using the
+    second form all parameters are required.
     """
 
-    ages = list(range(current_age, life_expectancy + 1))
-    holdings = project_holdings_over_time(
-        current_age,
-        retirement_age,
-        life_expectancy,
-        bitcoin_growth_rate,
-        inflation_rate,
-        current_holdings,
-        monthly_investment,
-        monthly_spending,
-        current_bitcoin_price,
-    )
+    if holdings is not None:
+        ages = list(range(len(holdings)))
+    else:
+        required = [
+            current_age,
+            retirement_age,
+            life_expectancy,
+            bitcoin_growth_rate,
+            inflation_rate,
+            current_holdings,
+            monthly_investment,
+            monthly_spending,
+            current_bitcoin_price,
+        ]
+        if any(v is None for v in required):
+            raise ValueError("Missing parameters for holdings projection")
+
+        ages = list(range(current_age, life_expectancy + 1))
+        holdings = project_holdings_over_time(
+            current_age,
+            retirement_age,
+            life_expectancy,
+            bitcoin_growth_rate,
+            inflation_rate,
+            current_holdings,
+            monthly_investment,
+            monthly_spending,
+            current_bitcoin_price,
+        )
 
     df = pd.DataFrame({"Age": ages, "BTC Holdings": holdings})
     fig = px.line(df, x="Age", y="BTC Holdings")

@@ -1,6 +1,13 @@
 """Financial calculations for the Bitcoin retirement planner."""
 
 from dataclasses import dataclass
+from typing import Sequence
+
+
+def _clamp(x: float, lo: float, hi: float) -> float:
+    """Return ``x`` bounded to the inclusive range ``[lo, hi]``."""
+
+    return max(lo, min(x, hi))
 
 
 @dataclass
@@ -163,4 +170,70 @@ def project_holdings_over_time(
         price *= growth_multiplier
 
     return holdings
+
+
+def compute_health_score_basic(funding_ratio: float, runway_years: float) -> int:
+    """Compute a simple health score based on funding and runway.
+
+    The funding ratio represents available BTC divided by BTC required. Values
+    are capped at ``1.5`` (150%). Runway years indicate how long funds last
+    after retirement and are normalized against a 30-year horizon. The final
+    score is an integer in the range ``0`` to ``100``.
+    """
+
+    funding_component = _clamp(funding_ratio, 0.0, 1.5) / 1.5
+    runway_component = _clamp(runway_years / 30.0, 0.0, 1.0)
+    score = (funding_component + runway_component) / 2 * 100
+    return int(round(_clamp(score, 0.0, 100.0)))
+
+
+def health_score_from_outputs(
+    projected_btc_at_retirement: float,
+    btc_needed_at_retirement: float,
+    holdings_series_btc: Sequence[float],
+    current_age: int,
+    retirement_age: int,
+    life_expectancy: int | None = None,
+) -> tuple[int, dict[str, float]]:
+    """Derive a basic health score from model outputs.
+
+    Args:
+        projected_btc_at_retirement: BTC expected to be held at retirement.
+        btc_needed_at_retirement: BTC required at retirement age.
+        holdings_series_btc: Yearly BTC holdings from ``current_age`` onward.
+        current_age: Present age.
+        retirement_age: Target retirement age.
+        life_expectancy: Optional life expectancy overriding inference from
+            ``holdings_series_btc``.
+
+    Returns:
+        A tuple ``(score, details)`` where ``score`` is the health score and
+        ``details`` contains intermediate metrics.
+    """
+
+    holdings = list(holdings_series_btc)
+    if life_expectancy is None:
+        life_expectancy = current_age + len(holdings) - 1
+
+    start_index = max(0, retirement_age - current_age)
+    runway_years = 0
+    for h in holdings[start_index:]:
+        if h > 0:
+            runway_years += 1
+        else:
+            break
+
+    if btc_needed_at_retirement == 0:
+        funding_ratio = float("inf")
+    else:
+        funding_ratio = projected_btc_at_retirement / btc_needed_at_retirement
+
+    score = compute_health_score_basic(funding_ratio, runway_years)
+    details = {
+        "funding_ratio": funding_ratio,
+        "runway_years": runway_years,
+        "projected_btc": projected_btc_at_retirement,
+        "btc_needed": btc_needed_at_retirement,
+    }
+    return score, details
 

@@ -25,4 +25,18 @@ def test_progress_visualization_smoke():
     )
     show = getattr(viz, "show_progress_visualization", None)
     if isinstance(show, types.FunctionType):
-        assert show(series) is None  # Streamlit/Plotly typically returns None on render
+        assert show(series) is None  # Precomputed holdings
+        assert (
+            show(
+                current_age=35,
+                retirement_age=65,
+                life_expectancy=85,
+                bitcoin_growth_rate=0.05,
+                inflation_rate=0.02,
+                current_holdings=0.1,
+                monthly_investment=200.0,
+                monthly_spending=1200.0,
+                current_bitcoin_price=50_000.0,
+            )
+            is None
+        )
