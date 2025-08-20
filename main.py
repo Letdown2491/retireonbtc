@@ -1,6 +1,11 @@
 # main.py
 import streamlit as st
-from utils import get_bitcoin_price, initialize_session_state
+from utils import (
+    get_bitcoin_price,
+    initialize_session_state,
+    load_from_query_params,
+    update_query_params,
+)
 from calculations import (
     calculate_bitcoin_needed,
     project_holdings_over_time,
@@ -37,6 +42,7 @@ def _on_input_change():
     st.session_state.calculator_expanded = True
     st.session_state.results_expanded = False
     st.session_state.results_available = False
+    update_query_params()
 
 
 def render_calculator():
@@ -257,10 +263,29 @@ def render_results(plan, inputs, current_bitcoin_price):
 def main():
     st.title("Bitcoin Retirement Calculator")
     initialize_session_state()
+    inputs, params_present = load_from_query_params()
+    if params_present:
+        full_inputs = inputs.copy()
+        full_inputs["bitcoin_growth_rate"] = BITCOIN_GROWTH_RATE_OPTIONS[
+            inputs["bitcoin_growth_rate_label"]
+        ]
+        errors = validate_form_inputs(full_inputs)
+        if not errors:
+            plan, current_bitcoin_price = compute_retirement_plan(full_inputs)
+            st.session_state.results_data = (
+                plan,
+                full_inputs,
+                current_bitcoin_price,
+            )
+            st.session_state.results_available = True
+            st.session_state.results_expanded = True
+            st.session_state.calculator_expanded = False
     render_calculator()
     if st.session_state.get("results_available"):
         plan, inputs, current_bitcoin_price = st.session_state["results_data"]
-        with st.expander("Retirement Summary", expanded=st.session_state.results_expanded):
+        with st.expander(
+            "Retirement Summary", expanded=st.session_state.results_expanded
+        ):
             render_results(plan, inputs, current_bitcoin_price)
 
 
