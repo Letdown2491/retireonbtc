@@ -191,40 +191,27 @@ def render_results(plan, inputs, current_bitcoin_price):
     with st.expander("Retirement Summary", expanded=True):
         if total_bitcoin_holdings >= bitcoin_needed:
             result = (
-                "✅ Great news! You will have enough Bitcoin to retire. "
-                f"You will retire at {inputs['retirement_age']} and live comfortably until {life_expectancy} with {total_bitcoin_holdings:.4f} BTC. "
-                f"Your inflation-adjusted annual expenses at retirement will be ${annual_expense_at_retirement:,.2f}."
+                f"Great news! You're projected to retire in {years_until_retirement} years with {total_bitcoin_holdings:.4f} BTC. "
+                f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+                f"\n\n"
+                f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
+                f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
+                f"(about ${total_retirement_expenses:,.2f}). "
+                f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
             )
         else:
             additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
             result = (
-                f"💡 You need an additional {additional_bitcoin_needed:.4f} Bitcoin to retire. "
-                f"You will retire at {inputs['retirement_age']} and need {bitcoin_needed:.4f} BTC. "
-                f"Your inflation-adjusted annual expenses at retirement will be ${annual_expense_at_retirement:,.2f}."
+                f"You’ll need an additional {additional_bitcoin_needed:.4f} BTC to retire in {years_until_retirement} years. "
+                f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+                f"\n\n"
+                f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
+                f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
+                f"(about ${total_retirement_expenses:,.2f}). "
+                f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
             )
-        st.success(result)
-        st.metric("Retirement Health Score", f"{score}/100")
-        st.write("Funding Ratio:", f"{details['funding_ratio']:.2f}x")
-        st.write("Runway Years:", f"{details['runway_years']}")
+        st.write(result)
 
-    with st.expander("Detailed Breakdown"):
-        col_a, col_b = st.columns(2)
-        with col_a:
-            st.write("Years Until Retirement:", f"{years_until_retirement} years")
-            st.write("Current Bitcoin Price:", f"${current_bitcoin_price:,.2f}")
-            st.write("Projected Price at Retirement:", f"${future_bitcoin_price:,.2f}")
-            st.write("Bitcoin Needed at Retirement:", f"{bitcoin_needed:.4f} BTC")
-        with col_b:
-            st.write("Total Retirement Period:", f"{retirement_duration} years")
-            st.write("Future Value of Investments:", f"${future_investment_value:,.2f}")
-            st.write(
-                "Bitcoin from Investments:",
-                f"{future_investment_value / future_bitcoin_price:.4f} BTC",
-            )
-            st.write(
-                "Total Retirement Expenses:",
-                f"${total_retirement_expenses:,.2f}",
-            )
         show_progress_visualization(
             current_age=inputs["current_age"],
             retirement_age=inputs["retirement_age"],
@@ -236,21 +223,6 @@ def render_results(plan, inputs, current_bitcoin_price):
             monthly_spending=inputs["monthly_spending"],
             current_bitcoin_price=current_bitcoin_price,
         )
-
-    with st.expander("Verification"):
-        st.write(
-            f"With ${inputs['monthly_investment']:,.2f}/month investment for {years_until_retirement} years at {inputs['bitcoin_growth_rate']}% growth:"
-        )
-        st.write(f"- Future value: ${future_investment_value:,.2f}")
-        st.write(
-            f"- Bitcoin from investments: {future_investment_value / future_bitcoin_price:.4f} BTC"
-        )
-        st.write("At retirement:")
-        st.write(f"- Annual expenses: ${annual_expense_at_retirement:,.2f}")
-        st.write(
-            f"- Total expenses over {retirement_duration} years: ${total_retirement_expenses:,.2f}"
-        )
-        st.write(f"- Bitcoin needed: {bitcoin_needed:.4f} BTC")
 
     st.warning(
         "Note: Bitcoin prices are highly volatile. These calculations are estimates and should not be considered financial advice."
@@ -275,4 +247,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
