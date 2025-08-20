@@ -20,6 +20,9 @@ def initialize_session_state():
     st.session_state.setdefault("scenarios", [])
     st.session_state.setdefault("last_inputs", {})
     st.session_state.setdefault("clear_results", False)
+    st.session_state.setdefault("calculator_expanded", True)
+    st.session_state.setdefault("results_expanded", False)
+    st.session_state.setdefault("results_available", False)
 
 DEFAULT_MAX_ATTEMPTS = 3
 DEFAULT_FALLBACK_PRICE = 100_000

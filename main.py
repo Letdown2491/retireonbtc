@@ -33,92 +33,121 @@ def cached_get_bitcoin_price():
     return get_bitcoin_price()
 
 
-def render_form():
-    form_container = st.container()
-    with form_container:
-        with st.form("retirement_form"):
-            # st.subheader("Personal Information")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                current_age = st.number_input(
-                    "Current Age",
-                    min_value=AGE_RANGE[0],
-                    max_value=AGE_RANGE[1],
-                    value=DEFAULT_CURRENT_AGE,
-                    step=1,
-                    help="Your current age in years",
-                )
-            with col2:
-                retirement_age = st.number_input(
-                    "Retirement Age",
-                    min_value=max(int(current_age) + 1, AGE_RANGE[0]),
-                    max_value=AGE_RANGE[1],
-                    value=DEFAULT_RETIREMENT_AGE,
-                    step=1,
-                    help="The age at which you plan to retire",
-                )
-            with col3:
-                life_expectancy = st.number_input(
-                    "Life Expectancy",
-                    min_value=max(int(retirement_age) + 1, AGE_RANGE[0]),
-                    max_value=AGE_RANGE[1],
-                    value=DEFAULT_LIFE_EXPECTANCY,
-                    step=1,
-                    help="Your expected lifespan in years",
-                )
+def _on_input_change():
+    st.session_state.calculator_expanded = True
+    st.session_state.results_expanded = False
+    st.session_state.results_available = False
 
-            # st.subheader("Financial Information")
-            monthly_spending = st.number_input(
-                "Monthly Spending Needs (USD)",
-                min_value=1.0,
-                value=DEFAULT_MONTHLY_SPENDING,
-                help="Your estimated monthly expenses in retirement",
+
+def render_calculator():
+    with st.expander("Retirement Calculator", expanded=st.session_state.calculator_expanded):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            current_age = st.number_input(
+                "Current Age",
+                min_value=AGE_RANGE[0],
+                max_value=AGE_RANGE[1],
+                value=st.session_state.get("current_age", DEFAULT_CURRENT_AGE),
+                step=1,
+                help="Your current age in years",
+                key="current_age",
+                on_change=_on_input_change,
+            )
+        with col2:
+            retirement_age = st.number_input(
+                "Retirement Age",
+                min_value=max(int(current_age) + 1, AGE_RANGE[0]),
+                max_value=AGE_RANGE[1],
+                value=st.session_state.get("retirement_age", DEFAULT_RETIREMENT_AGE),
+                step=1,
+                help="The age at which you plan to retire",
+                key="retirement_age",
+                on_change=_on_input_change,
+            )
+        with col3:
+            life_expectancy = st.number_input(
+                "Life Expectancy",
+                min_value=max(int(retirement_age) + 1, AGE_RANGE[0]),
+                max_value=AGE_RANGE[1],
+                value=st.session_state.get("life_expectancy", DEFAULT_LIFE_EXPECTANCY),
+                step=1,
+                help="Your expected lifespan in years",
+                key="life_expectancy",
+                on_change=_on_input_change,
             )
 
-            bitcoin_growth_rate_label = st.selectbox(
-                "Bitcoin Growth Rate Projection",
-                list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
-                index=0,
-            )
-            bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
+        monthly_spending = st.number_input(
+            "Monthly Spending Needs (USD)",
+            min_value=1.0,
+            value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
+            help="Your estimated monthly expenses in retirement",
+            key="monthly_spending",
+            on_change=_on_input_change,
+        )
 
-            inflation_rate = st.number_input(
-                "Inflation Rate (%)",
+        bitcoin_growth_rate_label = st.selectbox(
+            "Bitcoin Growth Rate Projection",
+            list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
+            index=0,
+            key="bitcoin_growth_rate_label",
+            on_change=_on_input_change,
+        )
+        bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
+
+        inflation_rate = st.number_input(
+            "Inflation Rate (%)",
+            min_value=0.0,
+            value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
+            help="Expected annual inflation rate",
+            key="inflation_rate",
+            on_change=_on_input_change,
+        )
+
+        col6, col7 = st.columns(2)
+        with col6:
+            current_holdings = st.number_input(
+                "Current Bitcoin Holdings",
                 min_value=0.0,
-                value=DEFAULT_INFLATION_RATE,
-                help="Expected annual inflation rate",
+                max_value=HOLDINGS_MAX,
+                value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
+                help="How much Bitcoin you currently own",
+                key="current_holdings",
+                on_change=_on_input_change,
+            )
+        with col7:
+            monthly_investment = st.number_input(
+                "Monthly Recurring Investment (USD)",
+                min_value=0.0,
+                value=st.session_state.get("monthly_investment", DEFAULT_MONTHLY_INVESTMENT),
+                help="How much you invest in Bitcoin each month",
+                key="monthly_investment",
+                on_change=_on_input_change,
             )
 
-            col6, col7 = st.columns(2)
-            with col6:
-                current_holdings = st.number_input(
-                    "Current Bitcoin Holdings",
-                    min_value=0.0,
-                    max_value=HOLDINGS_MAX,
-                    value=DEFAULT_CURRENT_HOLDINGS,
-                    help="How much Bitcoin you currently own",
-                )
-            with col7:
-                monthly_investment = st.number_input(
-                    "Monthly Recurring Investment (USD)",
-                    min_value=0.0,
-                    value=DEFAULT_MONTHLY_INVESTMENT,
-                    help="How much you invest in Bitcoin each month",
-                )
-
-            submitted = st.form_submit_button("Calculate Retirement Plan")
-
-    inputs = {
-        "current_age": current_age,
-        "retirement_age": retirement_age,
-        "life_expectancy": life_expectancy,
-        "monthly_spending": monthly_spending,
-        "bitcoin_growth_rate": bitcoin_growth_rate,
-        "inflation_rate": inflation_rate,
-        "current_holdings": current_holdings,
-        "monthly_investment": monthly_investment,
-    }
-    return submitted, inputs
+        if st.button("Calculate Retirement Plan"):
+            inputs = {
+                "current_age": current_age,
+                "retirement_age": retirement_age,
+                "life_expectancy": life_expectancy,
+                "monthly_spending": monthly_spending,
+                "bitcoin_growth_rate": bitcoin_growth_rate,
+                "inflation_rate": inflation_rate,
+                "current_holdings": current_holdings,
+                "monthly_investment": monthly_investment,
+            }
+            errors = validate_form_inputs(inputs)
+            if errors:
+                for err in errors:
+                    st.error(err)
+                _on_input_change()
+            else:
+                plan, current_bitcoin_price = compute_retirement_plan(inputs)
+                st.session_state.results_data = (plan, inputs, current_bitcoin_price)
+                st.session_state.results_available = True
+                st.session_state.results_expanded = True
+                st.session_state.calculator_expanded = False
+                # Rerun so the updated expander states take effect immediately
+                st.rerun()
 
 
 def validate_form_inputs(inputs):
@@ -189,34 +218,35 @@ def render_results(plan, inputs, current_bitcoin_price):
         life_expectancy=life_expectancy,
     )
 
-    with st.expander("Retirement Summary", expanded=True):
-        if total_bitcoin_holdings >= bitcoin_needed:
-            result = (
-                f"Great news! You're projected to retire in {years_until_retirement} years with {total_bitcoin_holdings:.4f} BTC. "
-                f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
-                f"\n\n"
-                f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
-                f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
-                f"(about ${total_retirement_expenses:,.2f}). "
-                f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
-            )
-        else:
-            additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
-            result = (
-                f"You’ll need an additional {additional_bitcoin_needed:.4f} BTC to retire in {years_until_retirement} years. "
-                f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
-                f"\n\n"
-                f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
-                f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
-                f"(about ${total_retirement_expenses:,.2f}). "
-                f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC."
-            )
-        st.write(result)
-
-        show_progress_visualization(
-            holdings_series,
-            current_age=inputs["current_age"],
+    if total_bitcoin_holdings >= bitcoin_needed:
+        result = (
+            f"Great news! You're projected to retire in {years_until_retirement} years with {total_bitcoin_holdings:.4f} BTC. "
+            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+            f"\n\n"
+            f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
+            f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
+            f"(about ${total_retirement_expenses:,.2f}). "
+            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
+            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
         )
+    else:
+        additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
+        result = (
+            f"You’ll need an additional {additional_bitcoin_needed:.4f} BTC to retire in {years_until_retirement} years. "
+            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+            f"\n\n"
+            f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
+            f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
+            f"(about ${total_retirement_expenses:,.2f}). "
+            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
+            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
+        )
+    st.write(result)
+
+    show_progress_visualization(
+        holdings_series,
+        current_age=inputs["current_age"],
+    )
 
     st.warning(
         "Note: Bitcoin prices are highly volatile. These calculations are estimates and should not be considered financial advice."
@@ -227,16 +257,11 @@ def render_results(plan, inputs, current_bitcoin_price):
 def main():
     st.title("Bitcoin Retirement Calculator")
     initialize_session_state()
-    submitted, inputs = render_form()
-    if not submitted:
-        return
-    errors = validate_form_inputs(inputs)
-    if errors:
-        for err in errors:
-            st.error(err)
-        return
-    plan, current_bitcoin_price = compute_retirement_plan(inputs)
-    render_results(plan, inputs, current_bitcoin_price)
+    render_calculator()
+    if st.session_state.get("results_available"):
+        plan, inputs, current_bitcoin_price = st.session_state["results_data"]
+        with st.expander("Retirement Summary", expanded=st.session_state.results_expanded):
+            render_results(plan, inputs, current_bitcoin_price)
 
 
 if __name__ == "__main__":
