@@ -1,7 +1,11 @@
 # main.py
 import streamlit as st
 from utils import get_bitcoin_price, initialize_session_state
-from calculations import calculate_bitcoin_needed
+from calculations import (
+    calculate_bitcoin_needed,
+    project_holdings_over_time,
+    health_score_from_outputs,
+)
 from validation import validate_inputs
 from config import (
     BITCOIN_GROWTH_RATE_OPTIONS,
@@ -150,6 +154,8 @@ def compute_retirement_plan(inputs):
 
 
 def render_results(plan, inputs, current_bitcoin_price):
+    """Render the retirement plan results and return a health score."""
+
     bitcoin_needed = plan.bitcoin_needed
     life_expectancy = plan.life_expectancy
     total_bitcoin_holdings = plan.total_bitcoin_holdings
@@ -160,6 +166,27 @@ def render_results(plan, inputs, current_bitcoin_price):
 
     years_until_retirement = inputs["retirement_age"] - inputs["current_age"]
     retirement_duration = life_expectancy - inputs["retirement_age"]
+
+    holdings_series = project_holdings_over_time(
+        current_age=inputs["current_age"],
+        retirement_age=inputs["retirement_age"],
+        life_expectancy=life_expectancy,
+        bitcoin_growth_rate=inputs["bitcoin_growth_rate"],
+        inflation_rate=inputs["inflation_rate"],
+        current_holdings=inputs["current_holdings"],
+        monthly_investment=inputs["monthly_investment"],
+        monthly_spending=inputs["monthly_spending"],
+        current_bitcoin_price=current_bitcoin_price,
+    )
+
+    score, details = health_score_from_outputs(
+        projected_btc_at_retirement=total_bitcoin_holdings,
+        btc_needed_at_retirement=bitcoin_needed,
+        holdings_series_btc=holdings_series,
+        current_age=inputs["current_age"],
+        retirement_age=inputs["retirement_age"],
+        life_expectancy=life_expectancy,
+    )
 
     with st.expander("Retirement Summary", expanded=True):
         if total_bitcoin_holdings >= bitcoin_needed:
@@ -176,6 +203,9 @@ def render_results(plan, inputs, current_bitcoin_price):
                 f"Your inflation-adjusted annual expenses at retirement will be ${annual_expense_at_retirement:,.2f}."
             )
         st.success(result)
+        st.metric("Retirement Health Score", f"{score}/100")
+        st.write("Funding Ratio:", f"{details['funding_ratio']:.2f}x")
+        st.write("Runway Years:", f"{details['runway_years']}")
 
     with st.expander("Detailed Breakdown"):
         col_a, col_b = st.columns(2)
@@ -225,6 +255,7 @@ def render_results(plan, inputs, current_bitcoin_price):
     st.warning(
         "Note: Bitcoin prices are highly volatile. These calculations are estimates and should not be considered financial advice."
     )
+    return score, details
 
 
 def main():
