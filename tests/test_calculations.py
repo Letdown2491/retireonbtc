@@ -113,6 +113,21 @@ def test_project_holdings_over_time_matches_manual_calculation():
     assert holdings == pytest.approx(expected_holdings)
 
 
+def test_project_holdings_over_time_rejects_invalid_retirement_age():
+    with pytest.raises(ValueError):
+        project_holdings_over_time(
+            current_age=30,
+            retirement_age=90,
+            life_expectancy=85,
+            bitcoin_growth_rate=5,
+            inflation_rate=2,
+            current_holdings=1.5,
+            monthly_investment=500,
+            monthly_spending=3000,
+            current_bitcoin_price=30000,
+        )
+
+
 def test_calculate_future_value_requires_single_parameter():
     with pytest.raises(ValueError):
         calculate_future_value(100, 10)
