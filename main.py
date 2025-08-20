@@ -36,7 +36,7 @@ def render_form():
     form_container = st.container()
     with form_container:
         with st.form("retirement_form"):
-            st.subheader("Personal Information")
+            # st.subheader("Personal Information")
             col1, col2, col3 = st.columns(3)
             with col1:
                 current_age = st.number_input(
@@ -66,7 +66,7 @@ def render_form():
                     help="Your expected lifespan in years",
                 )
 
-            st.subheader("Financial Information")
+            # st.subheader("Financial Information")
             monthly_spending = st.number_input(
                 "Monthly Spending Needs (USD)",
                 min_value=1.0,
