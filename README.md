@@ -10,7 +10,7 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
 - Analyze different growth rate scenarios
 - Track your progress towards retirement
 - Validate that retirement age does not exceed life expectancy
-- Share scenarios via URL query parameters
+- Share scenarios via URL query parameters. Bookmark or share the generated URL to reproduce a specific retirement scenario.
 
 ## Getting Started
 1. Clone the repository:
@@ -27,7 +27,3 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
    streamlit run main.py
    ```
 
-## Shareable URLs
-
-Calculator inputs are encoded in the page's query parameters. Bookmark or share
-the generated URL to reproduce a specific retirement scenario.
