@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Sequence
 
+import numpy as np
+
 
 def _clamp(x: float, lo: float, hi: float) -> float:
     """Return ``x`` bounded to the inclusive range ``[lo, hi]``."""
@@ -152,33 +154,43 @@ def project_holdings_over_time(
     if retirement_age > life_expectancy:
         raise ValueError("retirement_age must be less than or equal to life_expectancy")
 
-    ages = range(current_age, life_expectancy + 1)
+    years = life_expectancy - current_age + 1
     years_until_retirement = retirement_age - current_age
 
     growth_multiplier = 1 + bitcoin_growth_rate / 100
     inflation_multiplier = 1 + inflation_rate / 100
 
+    price_factors = np.cumprod(np.r_[1, np.full(years - 1, growth_multiplier)])
+    prices = current_bitcoin_price * price_factors
+
     annual_expense_at_retirement = (
         monthly_spending * 12 * inflation_multiplier ** years_until_retirement
     )
 
-    holdings: list[float] = []
-    btc_holdings = current_holdings
-    price = current_bitcoin_price
-    annual_expense = annual_expense_at_retirement
+    pre_retirement_years = max(years_until_retirement, 0)
+    post_retirement_years = years - pre_retirement_years
 
-    for age in ages:
-        if age < retirement_age:
-            btc_holdings += (monthly_investment * 12) / price
-        else:
-            btc_holdings -= annual_expense / price
-            btc_holdings = max(btc_holdings, 0)
-            annual_expense *= inflation_multiplier
+    expense_factors = np.cumprod(
+        np.r_[1, np.full(max(post_retirement_years - 1, 0), inflation_multiplier)]
+    )
+    expenses_after_retirement = annual_expense_at_retirement * expense_factors
+    expenses_usd = np.concatenate(
+        [np.zeros(pre_retirement_years), expenses_after_retirement]
+    )
 
-        holdings.append(btc_holdings)
-        price *= growth_multiplier
+    investments_usd = np.concatenate(
+        [
+            np.full(pre_retirement_years, monthly_investment * 12),
+            np.zeros(post_retirement_years),
+        ]
+    )
 
-    return holdings
+    btc_change = (investments_usd - expenses_usd) / prices
+
+    holdings = current_holdings + np.cumsum(btc_change)
+    holdings = np.maximum(holdings, 0)
+
+    return holdings.tolist()
 
 
 def compute_health_score_basic(funding_ratio: float, runway_years: float) -> int:

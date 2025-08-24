@@ -113,6 +113,48 @@ def test_project_holdings_over_time_matches_manual_calculation():
     assert holdings == pytest.approx(expected_holdings)
 
 
+def test_project_holdings_vectorized_equivalent_to_loop():
+    params = dict(
+        current_age=25,
+        retirement_age=30,
+        life_expectancy=35,
+        bitcoin_growth_rate=5,
+        inflation_rate=2,
+        current_holdings=0.8,
+        monthly_investment=200,
+        monthly_spending=1000,
+        current_bitcoin_price=20000,
+    )
+
+    def loop_version(**p):
+        ages = range(p["current_age"], p["life_expectancy"] + 1)
+        years_until_retirement = p["retirement_age"] - p["current_age"]
+        growth_multiplier = 1 + p["bitcoin_growth_rate"] / 100
+        inflation_multiplier = 1 + p["inflation_rate"] / 100
+        annual_expense_at_retirement = (
+            p["monthly_spending"] * 12 * inflation_multiplier ** years_until_retirement
+        )
+        holdings = []
+        btc_holdings = p["current_holdings"]
+        price = p["current_bitcoin_price"]
+        annual_expense = annual_expense_at_retirement
+        for age in ages:
+            if age < p["retirement_age"]:
+                btc_holdings += (p["monthly_investment"] * 12) / price
+            else:
+                btc_holdings -= annual_expense / price
+                btc_holdings = max(btc_holdings, 0)
+                annual_expense *= inflation_multiplier
+            holdings.append(btc_holdings)
+            price *= growth_multiplier
+        return holdings
+
+    loop_holdings = loop_version(**params)
+    vec_holdings = project_holdings_over_time(**params)
+
+    assert vec_holdings == pytest.approx(loop_holdings)
+
+
 def test_project_holdings_over_time_rejects_invalid_retirement_age():
     with pytest.raises(ValueError):
         project_holdings_over_time(
