@@ -92,3 +92,34 @@ def test_get_bitcoin_price_missing_price(monkeypatch):
 
     assert price == 100000
     assert len(warnings) == 2
+
+
+def test_get_bitcoin_price_quick_fail(monkeypatch):
+    request_calls = []
+
+    class MockSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            request_calls.append(1)
+            raise requests.exceptions.RequestException("boom")
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    sleep_calls = []
+
+    def mock_sleep(duration):
+        sleep_calls.append(duration)
+
+    monkeypatch.setattr(time, "sleep", mock_sleep)
+
+    price, warnings = get_bitcoin_price(max_attempts=5, base_delay=1, quick_fail=True)
+
+    assert price == 100000
+    assert len(warnings) == 2
+    assert len(request_calls) == 1
+    assert sleep_calls == []
