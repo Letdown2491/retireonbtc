@@ -6,21 +6,25 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 
 ## 2025-08-24
 
-### Added
-- Session-cached Bitcoin price with a `quick_fail` option to fall back immediately on API errors; updated callers and tests.
-- Vectorized holdings projection path and accompanying test for faster projections on large horizons.
+### Changed
+- Update update-changelog.yml
+- Update update_changelog.py
+- Update update_changelog.py
+- Create update-changelog.yml
+- Create update_changelog.py
+- Rename CHANGELOG.MD to CHANGELOG.md
+- Update CHANGELOG.MD
+- Update config.py
+- Update visualization.py
+- Update main.py
+- style line chart in progress visualization
+- Vectorize holdings projection and add test
+
+## 2025-08-23
 
 ### Changed
-- Progress line chart styling: softer area fill, tighter margins, and disabled mode bar.
-- Results UI: `st.info` notice, improved copy, and consistent **₿** symbol across charts/text.
-- Layout: inputs reorganized (e.g., monthly spending & inflation side-by-side) to improve form flow.
-- Terminology: use “Holdings (₿)” and “Bitcoin Needed (₿)” for labels.
-
-### Fixed
-- Minor spacing/layout issues in `visualization.py`.
-
-### Performance
-- Vectorization reducing Python-loop overhead in holdings calculations.
+- Add quick-fail option for Bitcoin price and update callers
+- Cache bitcoin price in session
 
 ## 2025-08-20
 
