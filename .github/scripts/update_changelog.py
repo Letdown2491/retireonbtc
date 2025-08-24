@@ -5,36 +5,34 @@ from dateutil.parser import parse as dtparse
 
 CHANGELOG = "CHANGELOG.md"
 
-# Matches the exact paragraph you called out (with or without backticks around YYYY-MM-DD)
 ANCHOR_RE = re.compile(
     r"This project loosely follows the spirit of Keep a Changelog and Semantic Versioning\. "
     r"Dates use `?YYYY-MM-DD`?\. "
     r"No formal version tags have been created yet; entries are grouped by date\.",
     re.M,
 )
-
 DATE_H2_RE = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s*$", re.M)
+DATE_HDR_RE_FMT = r"^##\s+{date}\s*$"  # filled with re.escape(date)
 CONV_RE = re.compile(r"^(feat|fix|perf|docs|test|ci|build|refactor|chore)(?:\([\w\/\-\._]+\))?:\s*(.+)$", re.I)
 
-SECTION_ORDER = [
-    "Added", "Fixed", "Performance", "Changed", "Docs", "Tests", "CI", "Build", "Refactor", "Chore"
-]
+SECTION_ORDER = ["Added", "Fixed", "Performance", "Changed", "Docs", "Tests", "CI", "Build", "Refactor", "Chore"]
 
 def git(*args) -> str:
     return subprocess.check_output(["git", *args], text=True).strip()
 
-def latest_date_from_changelog():
+def topmost_changelog_date():
     if not os.path.exists(CHANGELOG):
         return None
     with open(CHANGELOG, "r", encoding="utf-8") as f:
-        m = DATE_H2_RE.search(f.read())
+        content = f.read()
+    m = DATE_H2_RE.search(content)
     return dtparse(m.group(1)).date() if m else None
 
-def commits_since(date_):
+def commits_since_including(date_):
+    """Return all non-merge commits from <date_ 00:00> to HEAD, inclusive."""
     args = ["log", "--date=short", "--pretty=%H%x09%ad%x09%an%x09%s", "--no-merges"]
     if date_:
-        # Start from the next day to avoid re-listing the last recorded date
-        since = (datetime.combine(date_, datetime.min.time()) + timedelta(days=1)).strftime("%Y-%m-%d")
+        since = datetime.combine(date_, datetime.min.time()).strftime("%Y-%m-%d")
         args.append(f"--since={since}")
     out = git(*args)
     commits = []
@@ -46,7 +44,7 @@ def commits_since(date_):
             commits.append({"sha": sha, "date": d, "author": author, "subject": subj})
     return commits
 
-def bucketize(commits):
+def bucketize_by_date(commits):
     days = {}
     for c in commits:
         day = c["date"]
@@ -56,8 +54,8 @@ def bucketize(commits):
             kind = m.group(1).lower()
             msg = m.group(2).strip()
             mapping = {
-                "feat": "Added", "fix": "Fixed", "perf": "Performance", "docs": "Docs",
-                "test": "Tests", "ci": "CI", "build": "Build", "refactor": "Refactor", "chore": "Chore"
+                "feat":"Added","fix":"Fixed","perf":"Performance","docs":"Docs",
+                "test":"Tests","ci":"CI","build":"Build","refactor":"Refactor","chore":"Chore"
             }
             section = mapping.get(kind, "Changed")
         else:
@@ -66,58 +64,82 @@ def bucketize(commits):
         days.setdefault(day, {}).setdefault(section, []).append(f"- {msg}")
     return days
 
-def render_sections(day_sections: dict) -> str:
+def render_day_sections(day_sections: dict) -> str:
     out = []
     for section in SECTION_ORDER:
         items = day_sections.get(section)
         if not items:
             continue
         out.append(f"### {section}\n" + "\n".join(items) + "\n")
-    return ("\n".join(out)).rstrip() + "\n"
+    return "\n".join(out).rstrip() + "\n"
 
-def insert_entries(entries_markdown: str):
-    with open(CHANGELOG, "r", encoding="utf-8") as f:
-        content = f.read()
-
+def find_anchor_end(content: str) -> int:
     m = ANCHOR_RE.search(content)
-    if m:
-        # Insert RIGHT AFTER the anchor paragraph
-        insert_pos = m.end()
-        # keep exactly two newlines after the anchor paragraph before inserting
-        # (normalize any number of newlines that may already exist)
-        tail = content[insert_pos:]
-        # strip leading newlines in tail; we’ll add exactly two back
-        tail = tail.lstrip("\n")
-        new_content = content[:insert_pos] + "\n\n" + entries_markdown + tail
-    else:
-        # Fallback: insert before the first dated section (keeps newest at top)
-        first_date = DATE_H2_RE.search(content)
-        if first_date:
-            new_content = content[:first_date.start()] + entries_markdown + content[first_date.start():]
-        else:
-            # Last resort: append to end
-            new_content = content.rstrip() + "\n\n" + entries_markdown
+    if not m:
+        # fallback to beginning of first date section
+        fd = DATE_H2_RE.search(content)
+        return fd.start() if fd else len(content)
+    return m.end()
 
-    if new_content != content:
-        with open(CHANGELOG, "w", encoding="utf-8") as f:
-            f.write(new_content)
+def find_section_span(content: str, date_str: str):
+    hdr_re = re.compile(DATE_HDR_RE_FMT.format(date=re.escape(date_str)), re.M)
+    m = hdr_re.search(content)
+    if not m:
+        return None
+    next_m = DATE_H2_RE.search(content, m.end())
+    end = next_m.start() if next_m else len(content)
+    return (m.start(), end)
+
+def remove_sections_for_dates(content: str, dates: list[str]) -> str:
+    # Remove from the bottom up to keep indices valid
+    spans = []
+    for d in dates:
+        span = find_section_span(content, d)
+        if span:
+            spans.append(span)
+    for start, end in sorted(spans, key=lambda x: x[0], reverse=True):
+        content = content[:start] + content[end:]
+    return content
 
 def main():
     if not os.path.exists(CHANGELOG):
         raise SystemExit(f"{CHANGELOG} not found. Commit your CHANGELOG first.")
 
-    last_date = latest_date_from_changelog()
-    commits = commits_since(last_date)
+    top_date = topmost_changelog_date()
+    commits = commits_since_including(top_date)
     if not commits:
         print("No new commits to add to changelog.")
         return
 
-    buckets = bucketize(commits)
+    buckets = bucketize_by_date(commits)
+    # Build sections for all dates >= top_date (if top_date exists) or for all new dates if file had none
     dates_desc = sorted(buckets.keys(), reverse=True)
-    sections = []
+
+    # Render markdown block for these dates (newest first)
+    new_block = []
     for d in dates_desc:
-        sections.append(f"## {d}\n\n{render_sections(buckets[d])}\n")
-    insert_entries("".join(sections))
+        new_block.append(f"## {d}\n\n{render_day_sections(buckets[d])}\n")
+    new_block_md = "".join(new_block)
+
+    # Load, remove existing sections for these dates (so we can replace top_date and avoid duplicates)
+    with open(CHANGELOG, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    content = remove_sections_for_dates(content, dates_desc)
+
+    # Insert right after the anchor paragraph (normalize spacing to exactly two newlines after it)
+    anchor_end = find_anchor_end(content)
+    head = content[:anchor_end]
+    tail = content[anchor_end:]
+    tail = tail.lstrip("\n")  # normalize
+    updated = head + "\n\n" + new_block_md + tail
+
+    if updated != content:
+        with open(CHANGELOG, "w", encoding="utf-8") as f:
+            f.write(updated)
+        print("CHANGELOG.md updated.")
+    else:
+        print("No changes to CHANGELOG.md.")
 
 if __name__ == "__main__":
     main()
