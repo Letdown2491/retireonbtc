@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-24
 
 ### Changed
+- Updated feature list in README.md.
 - Fixed update_changelog.py logic to display commit description and use title as fallback.
 - Update CHANGELOG.md
 - Update update-changelog.yml
