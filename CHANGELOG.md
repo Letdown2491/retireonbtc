@@ -7,20 +7,18 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-24
 
 ### Changed
+- Fixed update_changelog.py logic to display commit description and use title as fallback.
 - Update CHANGELOG.md
 - Update update-changelog.yml
-- Update update-changelog.yml
-- Update update-changelog.yml
-- Update update-changelog.yml
-- Update update_changelog.py
-- Update update_changelog.py
-- Create update-changelog.yml
-- Create update_changelog.py
+- Update install deps with git-python to remove subprocess warnings.
+- Remove subprocess calls to address Bandit security warnings.
+- Rebuild changelog so same day commits are merged under the same date instead of creating new entries.
+- Update CHANGELOG.md when a commit is merged into main.
+- Update CHANGELOG.md when a new commit is merged into the main branch.
 - Rename CHANGELOG.MD to CHANGELOG.md
-- Update CHANGELOG.MD
-- Update config.py
-- Update visualization.py
-- Update main.py
+- Remove 0% growth rate option.
+- Fix chart layout and spacing.
+- Minor UI tweaks
 - style line chart in progress visualization
 - Vectorize holdings projection and add test
 
