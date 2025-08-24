@@ -65,15 +65,19 @@ def show_progress_visualization(
             else:
                 ages = range(len(holdings))
 
-    df = pd.DataFrame({"Age": list(ages), "BTC Holdings": list(holdings)})
-    fig = px.line(df, x="Age", y="BTC Holdings")
+    df = pd.DataFrame({"Age": list(ages), "Holdings (₿)": list(holdings)})
+    fig = px.line(df, x="Age", y="Holdings (₿)")
     fig.update_traces(
-        line_color="rgba(253, 150, 68, 1.0)",
-        fill="tozeroy",
-        fillcolor="rgba(253, 150, 68, 1.0)",
-        opacity=0.5
+            line_color="rgba(253, 150, 68, 1.0)",
+            fill="tozeroy",
+            fillcolor="rgba(253, 150, 68, 0.2)",
+        )
+    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0))
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"displayModeBar": False}
     )
-    st.plotly_chart(fig, use_container_width=True)
 
 def compare_scenarios(scenarios: list[dict]) -> None:
     """Display a side-by-side comparison of retirement scenarios.
@@ -119,8 +123,8 @@ def compare_scenarios(scenarios: list[dict]) -> None:
             "current_age": "Current Age",
             "retirement_age": "Retirement Age",
             "life_expectancy": "Life Expectancy",
-            "bitcoin_needed": "Bitcoin Needed (BTC)",
-            "total_bitcoin_holdings": "Total Bitcoin Holdings (BTC)",
+            "bitcoin_needed": "Bitcoin Needed (₿)",
+            "total_bitcoin_holdings": "Total Bitcoin Holdings (₿)",
             "future_bitcoin_price": "Future Bitcoin Price (USD)",
         }
     )
@@ -132,9 +136,9 @@ def compare_scenarios(scenarios: list[dict]) -> None:
     fig = px.bar(
         df,
         x="Scenario",
-        y=["Bitcoin Needed (BTC)", "Total Bitcoin Holdings (BTC)"],
+        y=["Bitcoin Needed (₿)", "Total Bitcoin Holdings (₿)"],
         title="Bitcoin Needed vs. Projected Holdings",
         barmode="group",
-        labels={"value": "Bitcoin (BTC)", "variable": "Metric"},
+        labels={"value": "Bitcoin (₿)", "variable": "Metric"},
     )
     st.plotly_chart(fig)
