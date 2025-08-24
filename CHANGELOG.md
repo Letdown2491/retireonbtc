@@ -7,6 +7,13 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-24
 
 ### Changed
+- Update CHANGELOG.md
+- Update update-changelog.yml
+- Update update-changelog.yml
+- Update update-changelog.yml
+- Update update-changelog.yml
+- Update update_changelog.py
+- Update update_changelog.py
 - Create update-changelog.yml
 - Create update_changelog.py
 - Rename CHANGELOG.MD to CHANGELOG.md
@@ -14,7 +21,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 - Update config.py
 - Update visualization.py
 - Update main.py
-- Style line chart in progress visualization
+- style line chart in progress visualization
 - Vectorize holdings projection and add test
 
 ## 2025-08-23
