@@ -26,7 +26,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install script deps
-        run: pip install python-dateutil
+        run: pip install python-dateutil gitpython
 
       - name: Generate/Update CHANGELOG.md
         run: python .github/scripts/update_changelog.py
