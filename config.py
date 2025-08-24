@@ -13,10 +13,9 @@ DEFAULT_MONTHLY_INVESTMENT = 500.0
 # Bitcoin growth rate options
 BITCOIN_GROWTH_RATE_OPTIONS = {
     "Moderate (21%)": 21.0,
-    "No Growth (0%)": 0.0,
     "Conservative (10%)": 10.0,
     "Aggressive (30%)": 30.0,
-    "Hyper Aggressive (42.5%)": 42.5
+    "Hyperbitcoinization (42%)": 42
 }
 
 # Input validation ranges
