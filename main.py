@@ -84,14 +84,26 @@ def render_calculator():
                 on_change=_on_input_change,
             )
 
-        monthly_spending = st.number_input(
-            "Monthly Spending Needs (USD)",
-            min_value=1.0,
-            value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
-            help="Your estimated monthly expenses in retirement",
-            key="monthly_spending",
-            on_change=_on_input_change,
-        )
+        col4, col5 = st.columns(2)
+        with col4:
+            monthly_spending = st.number_input(
+                "Monthly Spending Needs (USD)",
+                min_value=1.0,
+                value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
+                help="Your estimated monthly expenses in retirement",
+                key="monthly_spending",
+                on_change=_on_input_change,
+            )
+
+        with col5:
+            inflation_rate = st.number_input(
+                "Inflation Rate (%)",
+                min_value=0.0,
+                value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
+                help="Expected annual inflation rate",
+                key="inflation_rate",
+                on_change=_on_input_change,
+            )
 
         bitcoin_growth_rate_label = st.selectbox(
             "Bitcoin Growth Rate Projection",
@@ -102,19 +114,10 @@ def render_calculator():
         )
         bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
 
-        inflation_rate = st.number_input(
-            "Inflation Rate (%)",
-            min_value=0.0,
-            value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
-            help="Expected annual inflation rate",
-            key="inflation_rate",
-            on_change=_on_input_change,
-        )
-
         col6, col7 = st.columns(2)
         with col6:
             current_holdings = st.number_input(
-                "Current Bitcoin Holdings",
+                "Current Bitcoin Holdings (₿)",
                 min_value=0.0,
                 max_value=HOLDINGS_MAX,
                 value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
@@ -239,35 +242,34 @@ def render_results(plan, inputs, current_bitcoin_price):
 
     if total_bitcoin_holdings >= bitcoin_needed:
         result = (
-            f"Great news! You're projected to retire in {years_until_retirement} years with {total_bitcoin_holdings:.4f} BTC. "
-            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+            f"Great news! You're projected to retire in {years_until_retirement} years with ₿{total_bitcoin_holdings:.4f}. "
+            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f} in current dollar terms. "
             f"\n\n"
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
-            f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
-            f"(about ${total_retirement_expenses:,.2f}). "
-            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
-            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
+            f"To fund {retirement_duration} years of retirement, you will need ₿{bitcoin_needed:.4f} "
+            f"(about ${total_retirement_expenses:,.2f} today). "
+            f"By then, your contributions alone will total ₿{future_investment_value / future_bitcoin_price:.4f}. "
+            f"The chart below displays your Bitcoin holdings over time for the next {life_expectancy - inputs['current_age']} years."
         )
     else:
         additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
         result = (
-            f"You’ll need an additional {additional_bitcoin_needed:.4f} BTC to retire in {years_until_retirement} years. "
-            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f}. "
+            f"You’ll need an additional ₿{additional_bitcoin_needed:.4f} to retire in {years_until_retirement} years. "
+            f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f} in current dollar term. "
             f"\n\n"
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
-            f"To fund {retirement_duration} years of retirement, you will need {bitcoin_needed:.4f} BTC "
-            f"(about ${total_retirement_expenses:,.2f}). "
-            f"By then, your contributions alone will total {future_investment_value / future_bitcoin_price:.4f} BTC. "
-            f"The chart below displays your BTC holdings over time for the next {life_expectancy - inputs['current_age']} years."
+            f"To fund {retirement_duration} years of retirement, you will need ₿{bitcoin_needed:.4f} "
+            f"(about ${total_retirement_expenses:,.2f} today). "
+            f"By then, your contributions alone will total ₿{future_investment_value / future_bitcoin_price:.4f}. "
+            f"The chart below displays your Bitcoin holdings over time for the next {life_expectancy - inputs['current_age']} years."
         )
     st.write(result)
-
     show_progress_visualization(
         holdings_series,
         current_age=inputs["current_age"],
     )
 
-    st.warning(
+    st.info(
         "Note: Bitcoin prices are highly volatile. These calculations are estimates and should not be considered financial advice."
     )
     return score, details
