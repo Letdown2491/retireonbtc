@@ -8,6 +8,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 
 ### Changed
 - Update update-changelog.yml
+- Update update-changelog.yml
 - Update update_changelog.py
 - Update update_changelog.py
 - Create update-changelog.yml
