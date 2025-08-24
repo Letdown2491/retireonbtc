@@ -1,5 +1,6 @@
 # main.py
 import streamlit as st
+import time
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import (
     calculate_bitcoin_needed,
@@ -22,7 +23,10 @@ from config import (
 from visualization import show_progress_visualization
 
 
-@st.cache_data(ttl=300)
+BITCOIN_PRICE_TTL = 300
+
+
+@st.cache_data(ttl=BITCOIN_PRICE_TTL)
 # Cache the Bitcoin price for 5 minutes to reduce API calls
 def cached_get_bitcoin_price():
     """Fetch and cache the current Bitcoin price for five minutes.
@@ -166,9 +170,20 @@ def validate_form_inputs(inputs):
 def compute_retirement_plan(inputs):
     with st.spinner("Calculating your retirement plan..."):
         st.session_state.last_inputs = inputs
-        current_bitcoin_price, price_warnings = cached_get_bitcoin_price()
+
+        refresh_needed = (
+            "cached_price" not in st.session_state
+            or "cached_price_timestamp" not in st.session_state
+            or time.time() - st.session_state["cached_price_timestamp"] > BITCOIN_PRICE_TTL
+        )
+        if refresh_needed:
+            st.session_state["cached_price"] = cached_get_bitcoin_price()
+            st.session_state["cached_price_timestamp"] = time.time()
+
+        current_bitcoin_price, price_warnings = st.session_state["cached_price"]
         for warning_msg in price_warnings:
             st.warning(warning_msg)
+
         plan = calculate_bitcoin_needed(
             inputs["monthly_spending"],
             inputs["current_age"],
@@ -257,6 +272,9 @@ def render_results(plan, inputs, current_bitcoin_price):
 def main():
     st.title("Bitcoin Retirement Calculator")
     initialize_session_state()
+    if "cached_price" not in st.session_state:
+        st.session_state["cached_price"] = cached_get_bitcoin_price()
+        st.session_state["cached_price_timestamp"] = time.time()
     render_calculator()
     if st.session_state.get("results_available"):
         plan, inputs, current_bitcoin_price = st.session_state["results_data"]
