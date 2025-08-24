@@ -1,46 +1,97 @@
 # Changelog
-All notable changes to this project are documented here.  
-Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Dates use `YYYY-MM-DD`.
 
-## 2025-08-19
+All notable changes to **retireonbtc** are documented here.
+
+This project loosely follows the spirit of Keep a Changelog and Semantic Versioning. Dates use `YYYY-MM-DD`. No formal version tags have been created yet; entries are grouped by date.
+
+## 2025-08-24
+
 ### Added
-- Progress / accumulation visualization in Plotly and related UI hooks. (PRs #15, #20)  
-- Helper for projecting BTC holdings over time and integration in visualization. (PR #20)
+- Session-cached Bitcoin price with a `quick_fail` option to fall back immediately on API errors; updated callers and tests.
+- Vectorized holdings projection path and accompanying test for faster projections on large horizons.
 
 ### Changed
-- Refactor: `main.py` split into helper functions for clearer orchestration. (PR #19)  
-- Refactor: initialization of Streamlit session state to a cleaner `setdefault` pattern with docs. (PR #27)  
-- Calculations: require exactly one of `annual_growth_rate` or `growth_factor` in future-value API. (PR #23)  
-- Calculations: optimized holdings projection loop (precomputed multipliers, iterative updates). (PR #24)  
-- Visualization: scenario comparison uses DataFrame with user-friendly headers; improved compare flow. (PR #16)  
-- Visualization: handle empty scenario lists gracefully. (PR #26)  
-- Inputs: use centralized config defaults in Streamlit widgets. (PR #9)  
-- Inputs: updated validation for minimum monthly spending; allow zero monthly investment. (PRs #7, #25)
-- Utils: hardened `get_bitcoin_price` with retries + jitter, session reuse, broader error handling, and warnings. (PRs #13, #18, #22)  
-- Types/Docs: added type annotations and docstrings across modules. (PR #21)
+- Progress line chart styling: softer area fill, tighter margins, and disabled mode bar.
+- Results UI: `st.info` notice, improved copy, and consistent **₿** symbol across charts/text.
+- Layout: inputs reorganized (e.g., monthly spending & inflation side-by-side) to improve form flow.
+- Terminology: use “Holdings (₿)” and “Bitcoin Needed (₿)” for labels.
 
 ### Fixed
-- Minor README and setup instruction fixes. (PR #1)
+- Minor spacing/layout issues in `visualization.py`.
 
 ### Performance
-- Caching: use Streamlit cache for Bitcoin price; earlier timestamped caching approach explored. (commit `8a22999`, PR #4)  
+- Vectorization reducing Python-loop overhead in holdings calculations.
 
----
+## 2025-08-20
 
-## 2025-08-18
 ### Added
-- Dependencies for data/HTTP (e.g., requests, pandas, plotly) recorded in `requirements.txt`. (PR #2)
+- **Retirement Health Score** (funding ratio & runway years) with helper functions and tests.
+- Interactive calculator UX: expanders for Calculator/Results with stateful open/close behavior; auto-rerun after successful calculation to collapse the form.
 
 ### Changed
-- Validation centralized into its own module.  
-- Switched to timestamped cache for BTC price.  
-- `main.py` passes a single cached BTC price into retirement calculations.  
-- README setup improvements.
+- Validation: reject plans where `retirement_age` exceeds `life_expectancy`; enforce non-negative years in future-value math.
+- Config-driven ranges: age inputs derive min/max from `AGE_RANGE` in `config.py`.
+- Visualization API simplified: `show_progress_visualization(...)` accepts a precomputed holdings series or derives it; infers ages when appropriate.
+- Result rendering: compute holdings series once, feed to visualization, and surface health score metrics.
+- Copy/units: normalized wording (“Bitcoin holdings”, “in current dollar terms”) and consistent **₿** units.
 
----
+### Tests
+- Coverage for health scoring, invalid retirement age, and future-value boundary checks; minor test harness updates.
+
+## 2025-08-19
+
+### Added
+- BTC accumulation / progress visualization in charts.
+- Helper for BTC holdings projection and integration into visualization pipeline.
+- Docstrings and type annotations across modules for clarity and tooling.
+- Jitter/backoff and constants for Bitcoin price retrieval to reduce request collisions.
+- Streamlit caching for Bitcoin price to limit network calls.
+- `RetirementPlan` dataclass and refactor to return structured results.
+- Shared Bitcoin growth-rate options referenced in UI controls.
+- **Security policy** (`SECURITY.md`) with reporting guidelines and scope.
+- Automated dependency updates via **Dependabot** configuration.
+
+### Changed / Refactored
+- Split `main.py` into focused helper functions for readability and testability.
+- Reused common inflation/growth factors to avoid duplication.
+- Switched scenarios to a DataFrame structure and standardized column names.
+- Centralized/strengthened input validation (including monthly spending).
+- Optimized inflation-rate and holdings projection loops.
+- Required exactly one growth parameter for future-value calculations.
+- Improved `st.session_state` initialization and general state handling.
+- Reworked HTTP request handling with session reuse and exponential backoff.
+- Removed legacy price cache in favor of the new approach; updated callers.
+- Cleaned up unused imports and minor code hygiene items.
+- Plotly version range widened to allow latest 6.x (`>=5.24,<7`).
+
+### Fixed
+- Minimum spending validation edge case.
+- Handling of malformed responses in `get_bitcoin_price`.
+- Allow zero monthly investment while keeping validation strict.
+- Safe handling for empty scenario comparisons in the compare function.
+
+### Housekeeping
+- Introduced initial `CHANGELOG.md`.
+- Replaced old workflow-based Dependabot with root `.github/dependabot.yml`.
+
+## 2025-08-18
+
+### Added
+- Timestamped cache for Bitcoin price; passed cached price through retirement calculations.
+- Data/HTTP dependencies added to requirements.
+
+### Changed / Refactored
+- Centralized input validation across the app.
+
+### Docs
+- Fixed README setup instructions.
 
 ## 2025-08-17
-### Project bootstrap
-- Initial repository scaffolding and README.  
-- Initial code commit and early README iterations/cleanup.  
-- Dev container folder added; core files updated (`main.py`, `config.py`, `requirements.txt`).
+
+### Added
+- Initial code commit: Streamlit calculator, core modules, and config.
+- Dev Container folder for consistent local development.
+- Initial `requirements.txt` and baseline configuration.
+
+### Docs
+- Initial README created and refined.
