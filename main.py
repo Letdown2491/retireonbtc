@@ -28,13 +28,17 @@ BITCOIN_PRICE_TTL = 300
 
 @st.cache_data(ttl=BITCOIN_PRICE_TTL)
 # Cache the Bitcoin price for 5 minutes to reduce API calls
-def cached_get_bitcoin_price():
+def cached_get_bitcoin_price(quick_fail: bool = False):
     """Fetch and cache the current Bitcoin price for five minutes.
+
+    Args:
+        quick_fail (bool): If ``True``, fail fast and return the fallback price
+            immediately on any API error.
 
     Returns:
         tuple: (price, warnings) returned from ``get_bitcoin_price``
     """
-    return get_bitcoin_price()
+    return get_bitcoin_price(quick_fail=quick_fail)
 
 
 def _on_input_change():
@@ -177,7 +181,7 @@ def compute_retirement_plan(inputs):
             or time.time() - st.session_state["cached_price_timestamp"] > BITCOIN_PRICE_TTL
         )
         if refresh_needed:
-            st.session_state["cached_price"] = cached_get_bitcoin_price()
+            st.session_state["cached_price"] = cached_get_bitcoin_price(quick_fail=True)
             st.session_state["cached_price_timestamp"] = time.time()
 
         current_bitcoin_price, price_warnings = st.session_state["cached_price"]
@@ -273,7 +277,7 @@ def main():
     st.title("Bitcoin Retirement Calculator")
     initialize_session_state()
     if "cached_price" not in st.session_state:
-        st.session_state["cached_price"] = cached_get_bitcoin_price()
+        st.session_state["cached_price"] = cached_get_bitcoin_price(quick_fail=True)
         st.session_state["cached_price_timestamp"] = time.time()
     render_calculator()
     if st.session_state.get("results_available"):

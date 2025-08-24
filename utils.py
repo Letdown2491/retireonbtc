@@ -33,6 +33,7 @@ def get_bitcoin_price(
     base_delay: float = 2,
     fallback_price: float = DEFAULT_FALLBACK_PRICE,
     jitter: float = 0,
+    quick_fail: bool = False,
 ):
     """Fetch the current Bitcoin price from DIA API with retry logic.
 
@@ -43,6 +44,8 @@ def get_bitcoin_price(
         fallback_price (float): Price to return if all attempts fail.
         jitter (float): Maximum additional random delay in seconds added to the
             backoff. Set to ``0`` to disable jitter.
+        quick_fail (bool): If ``True``, call the API only once and return the
+            fallback price immediately on any exception without sleeping.
 
     Returns:
         tuple: (price, warnings) where price is the current Bitcoin price in USD
@@ -56,7 +59,8 @@ def get_bitcoin_price(
     warnings = []
 
     with requests.Session() as session:
-        for attempt in range(max_attempts):
+        attempts = 1 if quick_fail else max_attempts
+        for attempt in range(attempts):
             try:
                 response = session.get(dia_api_url, timeout=timeout)
                 response.raise_for_status()
@@ -81,7 +85,15 @@ def get_bitcoin_price(
                 )
                 logging.warning(message)
                 warnings.append(message)
-                if attempt < max_attempts - 1:
+                if quick_fail:
+                    fallback_message = (
+                        f"[{timestamp}] Failed to fetch current Bitcoin price. "
+                        f"Using fallback price of ${fallback_price:,}"
+                    )
+                    logging.warning(fallback_message)
+                    warnings.append(fallback_message)
+                    return fallback_price, warnings
+                if attempt < attempts - 1:
                     # Wait before retrying with exponential backoff and optional jitter
                     delay = base_delay * (2 ** attempt)
                     if jitter:
