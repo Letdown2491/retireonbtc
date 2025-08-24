@@ -67,6 +67,12 @@ def show_progress_visualization(
 
     df = pd.DataFrame({"Age": list(ages), "BTC Holdings": list(holdings)})
     fig = px.line(df, x="Age", y="BTC Holdings")
+    fig.update_traces(
+        line_color="rgba(253, 150, 68, 1.0)",
+        fill="tozeroy",
+        fillcolor="rgba(253, 150, 68, 1.0)",
+        opacity=0.5
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 def compare_scenarios(scenarios: list[dict]) -> None:
