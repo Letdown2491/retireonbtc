@@ -4,6 +4,11 @@ All notable changes to **retireonbtc** are documented here.
 
 This project loosely follows the spirit of Keep a Changelog and Semantic Versioning. Dates use `YYYY-MM-DD`. No formal version tags have been created yet; entries are grouped by date.
 
+## 2025-08-25
+
+### Changed
+- Added current Bitcoin price below page title. Removed unnecessary Streamlit elements from header. Added calculator methodology expander to main page.
+
 ## 2025-08-24
 
 ### Changed
