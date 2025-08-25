@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from collections.abc import Sequence
+import numpy as np
 
 from calculations import project_holdings_over_time
 
@@ -66,13 +67,41 @@ def show_progress_visualization(
                 ages = range(len(holdings))
 
     df = pd.DataFrame({"Age": list(ages), "Holdings (₿)": list(holdings)})
-    fig = px.line(df, x="Age", y="Holdings (₿)")
-    fig.update_traces(
+    expenses_inputs = [
+        monthly_spending,
+        inflation_rate,
+        current_bitcoin_price,
+        bitcoin_growth_rate,
+    ]
+    if all(v is not None for v in expenses_inputs):
+        price_series = current_bitcoin_price * (
+            1 + bitcoin_growth_rate / 100
+        ) ** np.arange(len(ages))
+        expenses_usd = monthly_spending * 12 * (
+            1 + inflation_rate / 100
+        ) ** np.arange(len(ages))
+        expenses_btc = expenses_usd / price_series
+        df["Expenses (₿)"] = expenses_btc
+        y = ["Holdings (₿)", "Expenses (₿)"]
+    else:
+        y = "Holdings (₿)"
+
+    fig = px.line(df, x="Age", y=y)
+
+    if isinstance(y, list):
+        fig.data[0].line.color = "rgba(253, 150, 68, 1.0)"
+        fig.data[0].fill = "tozeroy"
+        fig.data[0].fillcolor = "rgba(253, 150, 68, 0.2)"
+        for trace in fig.data[1:]:
+            trace.fill = "tozeroy"
+            trace.fillcolor = "rgba(99, 110, 250, 0.2)"
+    else:
+        fig.update_traces(
             line_color="rgba(253, 150, 68, 1.0)",
             fill="tozeroy",
             fillcolor="rgba(253, 150, 68, 0.2)",
         )
-    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0))
+    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=False)
     st.plotly_chart(
         fig,
         use_container_width=True,
