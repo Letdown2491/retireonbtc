@@ -285,6 +285,10 @@ def render_results(plan, inputs, current_bitcoin_price):
     show_progress_visualization(
         holdings_series,
         current_age=inputs["current_age"],
+        monthly_spending=inputs["monthly_spending"],
+        inflation_rate=inputs["inflation_rate"],
+        current_bitcoin_price=current_bitcoin_price,
+        bitcoin_growth_rate=inputs["bitcoin_growth_rate"],
     )
 
     st.info(
