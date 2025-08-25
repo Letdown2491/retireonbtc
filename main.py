@@ -1,6 +1,7 @@
 # main.py
 import streamlit as st
 import time
+from datetime import datetime
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import (
     calculate_bitcoin_needed,
@@ -22,6 +23,23 @@ from config import (
 )
 from visualization import show_progress_visualization
 
+st.set_page_config(
+   page_title="Retire On BTC | Dashboard",  # <title> tag
+   page_icon="📈",                           # emoji or path to an image
+   layout="wide",
+   initial_sidebar_state="expanded",
+)
+
+st.markdown("""
+  <style>
+    /* Hide the entire top toolbar (hamburger + Deploy) */
+    header {visibility: hidden;}
+    /* Extra-safe: hide the toolbar container if present */
+    [data-testid="stToolbar"] {visibility: hidden; height: 0; position: fixed;}
+    /* Hide footer ("Made with Streamlit" etc.) */
+    footer {visibility: hidden;}
+  </style>
+""", unsafe_allow_html=True)
 
 BITCOIN_PRICE_TTL = 300
 
@@ -135,7 +153,7 @@ def render_calculator():
                 on_change=_on_input_change,
             )
 
-        if st.button("Calculate Retirement Plan"):
+        if st.button("🧮 Calculate Retirement Plan"):
             inputs = {
                 "current_age": current_age,
                 "retirement_age": retirement_age,
@@ -242,7 +260,7 @@ def render_results(plan, inputs, current_bitcoin_price):
 
     if total_bitcoin_holdings >= bitcoin_needed:
         result = (
-            f"Great news! You're projected to retire in {years_until_retirement} years with ₿{total_bitcoin_holdings:.4f}. "
+            f"🎉 Great news! You're projected to retire in {years_until_retirement} years with ₿{total_bitcoin_holdings:.4f}. "
             f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f} in current dollar terms. "
             f"\n\n"
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
@@ -254,7 +272,7 @@ def render_results(plan, inputs, current_bitcoin_price):
     else:
         additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
         result = (
-            f"You’ll need an additional ₿{additional_bitcoin_needed:.4f} to retire in {years_until_retirement} years. "
+            f"🚨 You’ll need an additional ₿{additional_bitcoin_needed:.4f} to retire in {years_until_retirement} years. "
             f"At that time, your inflation-adjusted annual expenses are expected to be ${annual_expense_at_retirement:,.2f} in current dollar term. "
             f"\n\n"
             f"Your retirement health score is {score}/100 with a funding ratio of {details['funding_ratio']:.2f}x. "
@@ -274,18 +292,61 @@ def render_results(plan, inputs, current_bitcoin_price):
     )
     return score, details
 
+def render_calculation_methodology():
+    st.markdown(
+        """
+        1) **What is your timeline?** The tool first figures out how many years you have until retirement and how long retirement is expected to last.
+           - Years until retirement: `y = target_retirement_age - current_age`
+           - Years in retirement: `n = life_expectancy - target_retirement_age`
+
+        2) **What will your spending be at retirement?** We take today's monthly spending and grow it by inflation for `y` years, then annualize it.
+           - `A = monthly_spending * 12 * (1 + r)^y`
+             where `r` is the annual inflation rate.
+
+        3) **How much will I spend across retirement?** We add up each retirement year's expenses, assuming they keep rising with inflation.
+           - `Total_expenses = A * ((1 + r)^n - 1) / r * (1 + r)`
+             where `n` is years in retirement.
+
+        4) **What will Bitcoin's price be at retirement?** The calculator projects what one Bitcoin may cost at retirement by applying a user-specified growth rate.
+           - `BTC_future_price = BTC_current_price * (1 + g)^y`
+             where `g` is the annual BTC growth rate.
+
+        5) **How many BTC would cover retirement expenses?** Dividing the total retirement expenses by the future Bitcoin price yields how many coins are needed.
+           - `BTC_needed = Total_expenses / BTC_future_price`
+
+        6) **If you invest monthly until retirement, how much will you hold??** If you invest every month, their future value is computed with monthly compounding.
+           - `FV_contributions = P * ((1 + i)^(12y) - 1) / i * (1 + i)`
+             where `P` is the monthly contribution and `i` is the monthly growth rate.
+
+        7) **How much Bitcoin will you own including current holdings?** The future investment value is converted into Bitcoin using the projected price, then added to any coins you already own.
+           - `BTC_from_investments = FV_contributions / BTC_future_price`
+           - `BTC_total = current_BTC_holdings + BTC_from_investments`
+
+        8) **Do you have enough Bitcoin to retire?**
+           If `BTC_total >= BTC_needed`, your projected BTC covers inflation-adjusted retirement spending. Otherwise, you'll see the shortfall.
+        """
+)
 
 def main():
-    st.title("Bitcoin Retirement Calculator")
+    st.markdown(
+        "<h1 style='margin: -4rem 0rem -2rem -0.5rem;'>📈 Retire On BTC</h1>",
+        unsafe_allow_html=True,
+    )
     initialize_session_state()
     if "cached_price" not in st.session_state:
         st.session_state["cached_price"] = cached_get_bitcoin_price(quick_fail=True)
         st.session_state["cached_price_timestamp"] = time.time()
+    price, _msgs = st.session_state["cached_price"]
+    st.markdown(
+        f"**Current Bitcoin Price:** \\${float(price):,.2f}"
+    )
     render_calculator()
     if st.session_state.get("results_available"):
         plan, inputs, current_bitcoin_price = st.session_state["results_data"]
         with st.expander("Retirement Summary", expanded=st.session_state.results_expanded):
             render_results(plan, inputs, current_bitcoin_price)
+    with st.expander("Calculation Methodology"):
+            render_calculation_methodology()
 
 
 if __name__ == "__main__":
