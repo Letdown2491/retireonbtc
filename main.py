@@ -66,7 +66,7 @@ def _on_input_change():
 
 
 def render_calculator():
-    with st.expander("Retirement Calculator", expanded=st.session_state.calculator_expanded):
+    with st.expander("🧮 Retirement Calculator", expanded=st.session_state.calculator_expanded):
         col1, col2, col3 = st.columns(3)
         with col1:
             current_age = st.number_input(
@@ -343,9 +343,9 @@ def main():
     render_calculator()
     if st.session_state.get("results_available"):
         plan, inputs, current_bitcoin_price = st.session_state["results_data"]
-        with st.expander("Retirement Summary", expanded=st.session_state.results_expanded):
+        with st.expander("📆 Retirement Summary", expanded=st.session_state.results_expanded):
             render_results(plan, inputs, current_bitcoin_price)
-    with st.expander("Calculation Methodology"):
+    with st.expander("🛠️ Calculation Methodology"):
             render_calculation_methodology()
 
 
