@@ -37,7 +37,7 @@ def simulate_holdings_paths(
     monthly_spending: float,
     current_bitcoin_price: float,
 ) -> tuple[np.ndarray, float]:
-    """Simulate BTC holdings paths given return factors.
+    """Simulate portfolio value paths (USD) given return factors.
 
     Parameters
     ----------
@@ -57,9 +57,10 @@ def simulate_holdings_paths(
     Returns
     -------
     tuple
-        ``(paths, prob_not_run_out)`` where ``paths`` is an array of BTC
-        holdings for each simulation and year and ``prob_not_run_out`` is the
-        probability that funds remain positive through retirement.
+        ``(paths, prob_not_run_out)`` where ``paths`` is an array of USD
+        portfolio values for each simulation and year and
+        ``prob_not_run_out`` is the probability that funds remain positive
+        through retirement.
     """
     n_sims, years = return_factors.shape
     prices = current_bitcoin_price * np.cumprod(return_factors, axis=1)
@@ -94,4 +95,6 @@ def simulate_holdings_paths(
         prob_not_run_out = float(np.mean(not_run_out))
     else:
         prob_not_run_out = 1.0
-    return holdings, prob_not_run_out
+
+    values = holdings * prices
+    return values, prob_not_run_out
