@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-26
 
 ### Changed
+- Display Monte Carlo simulation values in USD not BTC.
 - Minor bugfixes.
 - Update CHANGELOG.md
 - Update README.md
