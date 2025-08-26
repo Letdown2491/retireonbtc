@@ -10,6 +10,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 - Display yearly expenses in Bitcoin terms on the retirement chart.
 - Added emojis, just because.
 - Added current Bitcoin price below page title. Removed unnecessary Streamlit elements from header. Added calculator methodology expander to main page.
+- Switched Bitcoin price source to mempool.space API.
 
 ## 2025-08-24
 

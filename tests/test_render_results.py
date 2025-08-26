@@ -9,6 +9,7 @@ class DummyCtx:
     def __exit__(self, exc_type, exc, tb):
         pass
 
+
 class DummyStreamlit:
     def expander(self, *args, **kwargs):
         return DummyCtx()
@@ -21,6 +22,8 @@ class DummyStreamlit:
     def warning(self, *args, **kwargs):
         pass
     def metric(self, *args, **kwargs):
+        pass
+    def info(self, *args, **kwargs):
         pass
 
 
