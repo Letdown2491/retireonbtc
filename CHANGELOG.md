@@ -7,15 +7,13 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-26
 
 ### Changed
+- Customize fan chart colors
 - Prevent Streamlit usage statistics from running.
 
 ## 2025-08-25
 
 ### Changed
 - Use mempool prices
-- Display yearly expenses in Bitcoin terms on the retirement chart.
-- Added emojis, just because.
-- Added current Bitcoin price below page title. Removed unnecessary Streamlit elements from header. Added calculator methodology expander to main page.
 
 ### Docs
 - docs: clarify BTC need calculation
