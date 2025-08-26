@@ -311,12 +311,12 @@ def render_calculation_methodology():
            - `Total_expenses = A * ((1 + r)^n - 1) / r * (1 + r)`
              where `n` is years in retirement.
 
-        4) **What will Bitcoin's price be at retirement?** The calculator projects what one Bitcoin may cost at retirement by applying a user-specified growth rate.
-           - `BTC_future_price = BTC_current_price * (1 + g)^y`
-             where `g` is the annual BTC growth rate.
+        4) **How do Bitcoin prices evolve during retirement?** The calculator projects a BTC price for every year using the growth factor.
+           - `BTC_price(year) = BTC_current_price * growth_factor^year`
+             where `growth_factor = 1 + g` and `g` is the annual BTC growth rate.
 
-        5) **How many BTC would cover retirement expenses?** Dividing the total retirement expenses by the future Bitcoin price yields how many coins are needed.
-           - `BTC_needed = Total_expenses / BTC_future_price`
+        5) **How many BTC will cover retirement expenses?** Each year's inflated expenses are divided by that year's projected BTC price, and all yearly BTC amounts are summed.
+           - `BTC_needed = Σ (inflated_expense_year / BTC_price_year)`
 
         6) **If you invest monthly until retirement, how much will you hold??** If you invest every month, their future value is computed with monthly compounding.
            - `FV_contributions = P * ((1 + i)^(12y) - 1) / i * (1 + i)`
