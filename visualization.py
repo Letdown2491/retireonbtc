@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 from collections.abc import Sequence
 import numpy as np
 
@@ -154,6 +155,8 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
 
     fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=False)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
+
 
 def compare_scenarios(scenarios: list[dict]) -> None:
     """Display a side-by-side comparison of retirement scenarios.
