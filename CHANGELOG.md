@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-26
 
 ### Changed
+- Update README.md
 - Customize fan chart colors
 - Prevent Streamlit usage statistics from running.
 
