@@ -68,7 +68,7 @@ def test_get_bitcoin_price_malformed_json(monkeypatch):
     assert len(warnings) == 2
 
 
-def test_get_bitcoin_price_missing_price(monkeypatch):
+def test_get_bitcoin_price_missing_usd(monkeypatch):
     class MockResponse:
         def raise_for_status(self):
             pass
@@ -92,6 +92,58 @@ def test_get_bitcoin_price_missing_price(monkeypatch):
 
     assert price == 100000
     assert len(warnings) == 2
+
+
+def test_get_bitcoin_price_non_positive_usd(monkeypatch):
+    class MockResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"USD": 0}
+
+    class MockSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            return MockResponse()
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    price, warnings = get_bitcoin_price(max_attempts=1)
+
+    assert price == 100000
+    assert len(warnings) == 2
+
+
+def test_get_bitcoin_price_success(monkeypatch):
+    class MockResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"USD": 12345.67}
+
+    class MockSession:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def get(self, *args, **kwargs):
+            return MockResponse()
+
+    monkeypatch.setattr(requests, "Session", MockSession)
+
+    price, warnings = get_bitcoin_price(max_attempts=1)
+
+    assert price == 12345.67
+    assert warnings == []
 
 
 def test_get_bitcoin_price_quick_fail(monkeypatch):

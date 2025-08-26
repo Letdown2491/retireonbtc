@@ -35,7 +35,7 @@ def get_bitcoin_price(
     jitter: float = 0,
     quick_fail: bool = False,
 ):
-    """Fetch the current Bitcoin price from DIA API with retry logic.
+    """Fetch the current Bitcoin price from the mempool.space API with retry logic.
 
     Args:
         max_attempts (int): Maximum number of attempts to fetch the price.
@@ -52,9 +52,7 @@ def get_bitcoin_price(
             or fallback price if all attempts fail, and warnings is a list of
             warning messages generated during the process.
     """
-    dia_api_url = (
-        "https://api.diadata.org/v1/assetQuotation/Bitcoin/0x0000000000000000000000000000000000000000"
-    )
+    mempool_api_url = "https://mempool.space/api/v1/prices"
     timeout = 10  # seconds
     warnings = []
 
@@ -62,14 +60,13 @@ def get_bitcoin_price(
         attempts = 1 if quick_fail else max_attempts
         for attempt in range(attempts):
             try:
-                response = session.get(dia_api_url, timeout=timeout)
+                response = session.get(mempool_api_url, timeout=timeout)
                 response.raise_for_status()
 
                 data = response.json()
-                current_price = float(data["Price"])
-
+                current_price = float(data["USD"])
                 if current_price <= 0:
-                    raise ValueError("Received invalid price")
+                    raise KeyError("USD price not found or invalid")
 
                 return current_price, warnings
 
