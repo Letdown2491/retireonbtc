@@ -4,6 +4,11 @@ All notable changes to **retireonbtc** are documented here.
 
 This project loosely follows the spirit of Keep a Changelog and Semantic Versioning. Dates use `YYYY-MM-DD`. No formal version tags have been created yet; entries are grouped by date.
 
+## 2025-08-26
+
+### Changed
+- Prevent Streamlit usage statistics from running.
+
 ## 2025-08-25
 
 ### Changed
