@@ -108,6 +108,53 @@ def show_progress_visualization(
         config={"displayModeBar": False}
     )
 
+def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
+    """Render a fan chart of simulated BTC holdings.
+
+    Parameters
+    ----------
+    paths:
+        Simulated BTC holdings paths with shape ``(n_sims, years)``. ``None``
+        disables rendering.
+    start_age:
+        Age corresponding to the first column of ``paths``.
+    """
+
+    if paths is None:
+        return
+
+    arr = np.asarray(paths, dtype=float)
+    # Accept a single path of shape (years,) by upcasting to 2-D
+    if arr.ndim == 1:
+        arr = arr[np.newaxis, :]
+    if arr.ndim != 2 or arr.shape[1] == 0:
+        return
+
+    ages = np.arange(start_age, start_age + arr.shape[1])
+    percentiles = np.percentile(arr, [10, 25, 50, 75, 90], axis=0)
+    labels = ["p10", "p25", "p50", "p75", "p90"]
+    df = pd.DataFrame({"Age": ages})
+    for lab, series in zip(labels, percentiles):
+        df[lab] = series
+
+    fig = px.line(df, x="Age", y=labels)
+
+    colors = {
+        "p10": (255, 89, 94),
+        "p25": (255, 202, 58),
+        "p50": (138, 201, 38),
+        "p75": (25, 130, 196),
+        "p90": (106, 76, 147),
+    }
+    for trace in fig.data:
+        r, g, b = colors.get(trace.name, (0, 0, 0))
+        trace.line.color = f"rgba({r}, {g}, {b}, 1)"
+        trace.fill = "tozeroy"
+        trace.fillcolor = f"rgba({r}, {g}, {b}, 0.2)"
+
+    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=False)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+
 def compare_scenarios(scenarios: list[dict]) -> None:
     """Display a side-by-side comparison of retirement scenarios.
 

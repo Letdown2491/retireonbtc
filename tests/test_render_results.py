@@ -51,6 +51,6 @@ def test_render_results_returns_health_score(monkeypatch):
         "monthly_investment": 0.0,
         "monthly_spending": 0.0,
     }
-    score, details = main.render_results(plan, inputs, 1.0)
+    score, details = main.render_results(plan, inputs, 1.0, None)
     assert score == compute_health_score_basic(1.5, 2)
     assert details["funding_ratio"] == 1.5
