@@ -30,7 +30,7 @@ from visualization import show_progress_visualization, show_fan_chart
 st.set_page_config(
    page_title="Retire On BTC | Dashboard",  # <title> tag
    page_icon="📈",                           # emoji or path to an image
-   layout="wide",
+   # layout="wide",
    initial_sidebar_state="expanded",
 )
 
@@ -127,15 +127,6 @@ def render_calculator():
                 on_change=_on_input_change,
             )
 
-        bitcoin_growth_rate_label = st.selectbox(
-            "Bitcoin Growth Rate Projection",
-            list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
-            index=0,
-            key="bitcoin_growth_rate_label",
-            on_change=_on_input_change,
-        )
-        bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
-
         col6, col7 = st.columns(2)
         with col6:
             current_holdings = st.number_input(
@@ -156,23 +147,28 @@ def render_calculator():
                 key="monthly_investment",
                 on_change=_on_input_change,
             )
-
-        run_monte_carlo = st.checkbox(
-            "Enable Monte Carlo Simulation",
-            value=st.session_state.get("run_monte_carlo", False),
-            key="run_monte_carlo",
-            on_change=_on_input_change,
-        )
-        num_simulations = st.number_input(
-            "Number of Simulations",
-            min_value=1,
-            max_value=10000,
-            step=100,
-            value=st.session_state.get("num_simulations", 1000),
-            key="num_simulations",
-            on_change=_on_input_change,
-            disabled=not run_monte_carlo,
-        )
+        
+        col8, col9 = st.columns(2)
+        with col8:
+            bitcoin_growth_rate_label = st.selectbox(
+                "Bitcoin Growth Rate Projection",
+                list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
+                index=0,
+                key="bitcoin_growth_rate_label",
+                on_change=_on_input_change,
+            )
+            bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
+        
+        with col9:
+            num_simulations = st.number_input(
+                "Number of Monte Carlo Simulations",
+                min_value=1,
+                max_value=10000,
+                step=100,
+                value=st.session_state.get("num_simulations", 1000),
+                key="num_simulations",
+                on_change=_on_input_change,
+            )
 
         if st.button("🧮 Calculate Retirement Plan"):
             inputs = {
@@ -184,7 +180,6 @@ def render_calculator():
                 "inflation_rate": inflation_rate,
                 "current_holdings": current_holdings,
                 "monthly_investment": monthly_investment,
-                "run_monte_carlo": run_monte_carlo,
                 "num_simulations": int(num_simulations),
             }
             errors = validate_form_inputs(inputs)
@@ -195,22 +190,21 @@ def render_calculator():
             else:
                 plan, current_bitcoin_price = compute_retirement_plan(inputs)
                 mc_results = None
-                if run_monte_carlo:
-                    years = inputs["life_expectancy"] - inputs["current_age"] + 1
-                    returns = simulate_regime_shift_returns(years, int(num_simulations))
-                    paths, prob_not_run_out = simulate_holdings_paths(
-                        returns,
-                        current_age=inputs["current_age"],
-                        retirement_age=inputs["retirement_age"],
-                        current_holdings=inputs["current_holdings"],
-                        monthly_investment=inputs["monthly_investment"],
-                        monthly_spending=inputs["monthly_spending"],
-                        current_bitcoin_price=current_bitcoin_price,
-                    )
-                    mc_results = {
-                        "paths": paths,
-                        "prob_not_run_out": prob_not_run_out,
-                    }
+                years = inputs["life_expectancy"] - inputs["current_age"] + 1
+                returns = simulate_regime_shift_returns(years, int(num_simulations))
+                paths, prob_not_run_out = simulate_holdings_paths(
+                    returns,
+                    current_age=inputs["current_age"],
+                    retirement_age=inputs["retirement_age"],
+                    current_holdings=inputs["current_holdings"],
+                    monthly_investment=inputs["monthly_investment"],
+                    monthly_spending=inputs["monthly_spending"],
+                    current_bitcoin_price=current_bitcoin_price,
+                )
+                mc_results = {
+                    "paths": paths,
+                    "prob_not_run_out": prob_not_run_out,
+                }
                 st.session_state.results_data = (
                     plan,
                     inputs,
@@ -312,7 +306,7 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
             f"To fund {retirement_duration} years of retirement, you will need ₿{bitcoin_needed:.4f} "
             f"(about ${total_retirement_expenses:,.2f} today). "
             f"By then, your contributions alone will total ₿{future_investment_value / future_bitcoin_price:.4f}. "
-            f"The chart below displays your Bitcoin holdings over time for the next {life_expectancy - inputs['current_age']} years."
+            f"The chart below displays your Bitcoin holdings for the next {life_expectancy - inputs['current_age']} years in orange, and your expenses denominated in Bitcoin in blue."
         )
     else:
         additional_bitcoin_needed = bitcoin_needed - total_bitcoin_holdings
@@ -324,7 +318,7 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
             f"To fund {retirement_duration} years of retirement, you will need ₿{bitcoin_needed:.4f} "
             f"(about ${total_retirement_expenses:,.2f} today). "
             f"By then, your contributions alone will total ₿{future_investment_value / future_bitcoin_price:.4f}. "
-            f"The chart below displays your Bitcoin holdings over time for the next {life_expectancy - inputs['current_age']} years."
+            f"The chart below displays your Bitcoin holdings for the next {life_expectancy - inputs['current_age']} years in orange, and your expenses denominated in Bitcoin in blue."
         )
     st.write(result)
     show_progress_visualization(
@@ -335,11 +329,11 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
         current_bitcoin_price=current_bitcoin_price,
         bitcoin_growth_rate=inputs["bitcoin_growth_rate"],
     )
-
+    
     if mc_results:
         prob_not_run_out = mc_results.get("prob_not_run_out")
         if prob_not_run_out is not None:
-            st.metric("Probability of Not Running Out", f"{prob_not_run_out:.1%}")
+            f"Based on the Monte Carlo simulations, the probability that you will have enough Bitcoin to cover your expenses is {prob_not_run_out:.2%}."
         paths = mc_results.get("paths")
         if paths is not None:
             show_fan_chart(paths, inputs["current_age"])
@@ -364,12 +358,12 @@ def render_calculation_methodology():
            - `Total_expenses = A * ((1 + r)^n - 1) / r * (1 + r)`
              where `n` is years in retirement.
 
-        4) **How do Bitcoin prices evolve during retirement?** The calculator projects a BTC price for every year using the growth factor.
-           - `BTC_price(year) = BTC_current_price * growth_factor^year`
-             where `growth_factor = 1 + g` and `g` is the annual BTC growth rate.
+        4) **What will Bitcoin's price be at retirement?** The calculator projects what one Bitcoin may cost at retirement by applying a user-specified growth rate.
+           - `BTC_future_price = BTC_current_price * (1 + g)^y`
+             where `g` is the annual BTC growth rate.
 
-        5) **How many BTC will cover retirement expenses?** Each year's inflated expenses are divided by that year's projected BTC price, and all yearly BTC amounts are summed.
-           - `BTC_needed = Σ (inflated_expense_year / BTC_price_year)`
+        5) **How many BTC would cover retirement expenses?** Dividing the total retirement expenses by the future Bitcoin price yields how many coins are needed.
+           - `BTC_needed = Total_expenses / BTC_future_price`
 
         6) **If you invest monthly until retirement, how much will you hold??** If you invest every month, their future value is computed with monthly compounding.
            - `FV_contributions = P * ((1 + i)^(12y) - 1) / i * (1 + i)`
