@@ -110,12 +110,12 @@ def show_progress_visualization(
     )
 
 def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
-    """Render a fan chart of simulated BTC holdings.
+    """Render a fan chart of simulated portfolio value in USD.
 
     Parameters
     ----------
     paths:
-        Simulated BTC holdings paths with shape ``(n_sims, years)``. ``None``
+        Simulated USD value paths with shape ``(n_sims, years)``. ``None``
         disables rendering.
     start_age:
         Age corresponding to the first column of ``paths``.
@@ -132,8 +132,8 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
         return
 
     ages = np.arange(start_age, start_age + arr.shape[1])
-    percentiles = np.percentile(arr, [10, 25, 50, 75, 90], axis=0)
-    labels = ["p10", "p25", "p50", "p75", "p90"]
+    percentiles = np.percentile(arr, [10, 25, 50, 75], axis=0)
+    labels = ["p10", "p25", "p50", "p75"]
     df = pd.DataFrame({"Age": ages})
     for lab, series in zip(labels, percentiles):
         df[lab] = series
@@ -145,7 +145,6 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
         "p25": (255, 202, 58),
         "p50": (138, 201, 38),
         "p75": (25, 130, 196),
-        "p90": (106, 76, 147),
     }
     for trace in fig.data:
         r, g, b = colors.get(trace.name, (0, 0, 0))
@@ -153,9 +152,10 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
         trace.fill = "tozeroy"
         trace.fillcolor = f"rgba({r}, {g}, {b}, 0.2)"
 
-    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=False)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-
+    fig.update_layout(
+        margin=dict(t=0, b=0, l=0, r=0), showlegend=False, yaxis_title="Value (USD)"
+    )
+    st.plotly_chart(fig)
 
 
 def compare_scenarios(scenarios: list[dict]) -> None:
