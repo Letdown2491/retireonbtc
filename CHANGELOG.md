@@ -7,12 +7,9 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-26
 
 ### Changed
+- Update CHANGELOG.md
 - Update README.md
-- Add Monte Carlo simulation toggle and simulation count to the retirement calculator
-- Implement regime shift return and holdings path simulators
-- Display probability of not running out and fan chart in results
-- Fix fan chart rendering by computing age ranges and accepting single-path inputs
-- Customize fan chart percentile lines with specified color palette and translucent fills
+- Customize fan chart colors
 - Prevent Streamlit usage statistics from running.
 
 ## 2025-08-25
