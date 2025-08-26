@@ -10,6 +10,7 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
 - Track your progress towards retirement with a retirement health score.
 - Show inflation-adjusted expenses over time.
 - Vectorized projected holdings with a quick glance chart of holdings over time.
+- Monte Carlo simulations to determine retirement plan success probability.
 - Extensive configuration and validation options to prevent calculation errors caused by invalid user inputs.
 - BTC price cached in session for snappier re-runs as well as a quick-fail option when fetching BTC price to avoid long waits on errors.
 
