@@ -2,6 +2,7 @@ import os
 import sys
 
 import pytest
+import numpy as np
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -55,7 +56,15 @@ def test_calculate_bitcoin_needed_equivalence():
     )
     bitcoin_from_investments = future_investment_value / future_bitcoin_price
     total_bitcoin_holdings = current_holdings + bitcoin_from_investments
-    bitcoin_needed = total_retirement_expenses / future_bitcoin_price
+
+    growth_factor = 1 + bitcoin_growth_rate / 100
+    inflation_multiplier = 1 + inflation_rate / 100
+    retirement_years = np.arange(
+        years_until_retirement, years_until_retirement + retirement_duration
+    )
+    projected_prices = current_bitcoin_price * growth_factor ** retirement_years
+    yearly_expenses = monthly_spending * 12 * inflation_multiplier ** retirement_years
+    bitcoin_needed = np.sum(yearly_expenses / projected_prices)
 
     assert plan.annual_expense_at_retirement == pytest.approx(
         annual_expense_at_retirement

@@ -84,12 +84,20 @@ def calculate_bitcoin_needed(
         annual_expense_at_retirement, retirement_duration, inflation_rate
     )
 
-    # Calculate future Bitcoin price at retirement
-    growth_factor = (1 + bitcoin_growth_rate / 100) ** years_until_retirement
-    future_bitcoin_price = current_bitcoin_price * growth_factor
+    # Project Bitcoin prices and yearly expenses across retirement
+    growth_factor = 1 + bitcoin_growth_rate / 100
+    inflation_multiplier = 1 + inflation_rate / 100
+    retirement_years = np.arange(
+        years_until_retirement, years_until_retirement + retirement_duration
+    )
+    projected_prices = current_bitcoin_price * growth_factor ** retirement_years
+    yearly_expenses = monthly_spending * 12 * inflation_multiplier ** retirement_years
 
-    # Calculate Bitcoin needed at retirement
-    bitcoin_needed = total_retirement_expenses / future_bitcoin_price
+    # Sum yearly BTC requirements to find total Bitcoin needed
+    bitcoin_needed = float(np.sum(yearly_expenses / projected_prices))
+
+    # Bitcoin price at the moment of retirement
+    future_bitcoin_price = current_bitcoin_price * growth_factor ** years_until_retirement
 
     # Calculate future value of monthly investments in dollars
     future_investment_value = calculate_future_value(
