@@ -12,6 +12,9 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 - Added emojis, just because.
 - Added current Bitcoin price below page title. Removed unnecessary Streamlit elements from header. Added calculator methodology expander to main page.
 
+### Docs
+- docs: clarify BTC need calculation
+
 ## 2025-08-24
 
 ### Changed
