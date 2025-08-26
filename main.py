@@ -8,6 +8,10 @@ from calculations import (
     project_holdings_over_time,
     health_score_from_outputs,
 )
+from simulation import (
+    simulate_regime_shift_returns,
+    simulate_holdings_paths,
+)
 from validation import validate_inputs
 from config import (
     BITCOIN_GROWTH_RATE_OPTIONS,
@@ -21,7 +25,7 @@ from config import (
     HOLDINGS_MAX,
     AGE_RANGE,
 )
-from visualization import show_progress_visualization
+from visualization import show_progress_visualization, show_fan_chart
 
 st.set_page_config(
    page_title="Retire On BTC | Dashboard",  # <title> tag
@@ -153,6 +157,23 @@ def render_calculator():
                 on_change=_on_input_change,
             )
 
+        run_monte_carlo = st.checkbox(
+            "Enable Monte Carlo Simulation",
+            value=st.session_state.get("run_monte_carlo", False),
+            key="run_monte_carlo",
+            on_change=_on_input_change,
+        )
+        num_simulations = st.number_input(
+            "Number of Simulations",
+            min_value=1,
+            max_value=10000,
+            step=100,
+            value=st.session_state.get("num_simulations", 1000),
+            key="num_simulations",
+            on_change=_on_input_change,
+            disabled=not run_monte_carlo,
+        )
+
         if st.button("🧮 Calculate Retirement Plan"):
             inputs = {
                 "current_age": current_age,
@@ -163,6 +184,8 @@ def render_calculator():
                 "inflation_rate": inflation_rate,
                 "current_holdings": current_holdings,
                 "monthly_investment": monthly_investment,
+                "run_monte_carlo": run_monte_carlo,
+                "num_simulations": int(num_simulations),
             }
             errors = validate_form_inputs(inputs)
             if errors:
@@ -171,7 +194,29 @@ def render_calculator():
                 _on_input_change()
             else:
                 plan, current_bitcoin_price = compute_retirement_plan(inputs)
-                st.session_state.results_data = (plan, inputs, current_bitcoin_price)
+                mc_results = None
+                if run_monte_carlo:
+                    years = inputs["life_expectancy"] - inputs["current_age"] + 1
+                    returns = simulate_regime_shift_returns(years, int(num_simulations))
+                    paths, prob_not_run_out = simulate_holdings_paths(
+                        returns,
+                        current_age=inputs["current_age"],
+                        retirement_age=inputs["retirement_age"],
+                        current_holdings=inputs["current_holdings"],
+                        monthly_investment=inputs["monthly_investment"],
+                        monthly_spending=inputs["monthly_spending"],
+                        current_bitcoin_price=current_bitcoin_price,
+                    )
+                    mc_results = {
+                        "paths": paths,
+                        "prob_not_run_out": prob_not_run_out,
+                    }
+                st.session_state.results_data = (
+                    plan,
+                    inputs,
+                    current_bitcoin_price,
+                    mc_results,
+                )
                 st.session_state.results_available = True
                 st.session_state.results_expanded = True
                 st.session_state.calculator_expanded = False
@@ -223,7 +268,7 @@ def compute_retirement_plan(inputs):
     return plan, current_bitcoin_price
 
 
-def render_results(plan, inputs, current_bitcoin_price):
+def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
     """Render the retirement plan results and return a health score."""
 
     bitcoin_needed = plan.bitcoin_needed
@@ -291,6 +336,14 @@ def render_results(plan, inputs, current_bitcoin_price):
         bitcoin_growth_rate=inputs["bitcoin_growth_rate"],
     )
 
+    if mc_results:
+        prob_not_run_out = mc_results.get("prob_not_run_out")
+        if prob_not_run_out is not None:
+            st.metric("Probability of Not Running Out", f"{prob_not_run_out:.1%}")
+        paths = mc_results.get("paths")
+        if paths is not None:
+            show_fan_chart(paths, inputs["current_age"])
+
     st.info(
         "Note: Bitcoin prices are highly volatile. These calculations are estimates and should not be considered financial advice."
     )
@@ -346,9 +399,9 @@ def main():
     )
     render_calculator()
     if st.session_state.get("results_available"):
-        plan, inputs, current_bitcoin_price = st.session_state["results_data"]
+        plan, inputs, current_bitcoin_price, mc_results = st.session_state["results_data"]
         with st.expander("📆 Retirement Summary", expanded=st.session_state.results_expanded):
-            render_results(plan, inputs, current_bitcoin_price)
+            render_results(plan, inputs, current_bitcoin_price, mc_results)
     with st.expander("🛠️ Calculation Methodology"):
             render_calculation_methodology()
 
