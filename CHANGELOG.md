@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-27
 
 ### Changed
+- Updated installation instructions and added Docker/Podman/Docker Compose support.
 - Added Dockerfile for initial Docker and Podman support.
 
 ## 2025-08-26
@@ -15,12 +16,6 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 - Use text inputs for monetary fields
 - Allow decimal input precision
 - Wrap calculator inputs in form
-- Display Monte Carlo simulation values in USD not BTC.
-- Minor bugfixes.
-- Update CHANGELOG.md
-- Update README.md
-- Customize fan chart colors
-- Prevent Streamlit usage statistics from running.
 
 ## 2025-08-25
 
