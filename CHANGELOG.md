@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-27
 
 ### Changed
+- Added repo status badges to README.md.
 - Update README.md
 - Create docker-compose.yml
 - Updated installation instructions and added Docker/Podman/Docker Compose support.
