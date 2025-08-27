@@ -110,6 +110,8 @@ def render_calculator():
                     "Monthly Spending Needs (USD)",
                     min_value=1.0,
                     value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
+                    step=0.01,
+                    format="%.2f",
                     help="Your estimated monthly expenses in retirement",
                     key="monthly_spending",
                 )
@@ -119,6 +121,8 @@ def render_calculator():
                     "Inflation Rate (%)",
                     min_value=0.0,
                     value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
+                    step=0.01,
+                    format="%.2f",
                     help="Expected annual inflation rate",
                     key="inflation_rate",
                 )
@@ -130,6 +134,8 @@ def render_calculator():
                     min_value=0.0,
                     max_value=HOLDINGS_MAX,
                     value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
+                    step=0.00000001,
+                    format="%.8f",
                     help="How much Bitcoin you currently own",
                     key="current_holdings",
                 )
@@ -138,6 +144,8 @@ def render_calculator():
                     "Monthly Recurring Investment (USD)",
                     min_value=0.0,
                     value=st.session_state.get("monthly_investment", DEFAULT_MONTHLY_INVESTMENT),
+                    step=0.01,
+                    format="%.2f",
                     help="How much you invest in Bitcoin each month",
                     key="monthly_investment",
                 )
