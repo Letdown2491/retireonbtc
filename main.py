@@ -106,46 +106,49 @@ def render_calculator():
 
             col4, col5 = st.columns(2)
             with col4:
-                monthly_spending = st.number_input(
+                monthly_spending = st.text_input(
                     "Monthly Spending Needs (USD)",
-                    min_value=1.0,
-                    value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
-                    step=0.01,
-                    format="%.2f",
+                    value=str(
+                        st.session_state.get(
+                            "monthly_spending", DEFAULT_MONTHLY_SPENDING
+                        )
+                    ),
                     help="Your estimated monthly expenses in retirement",
                     key="monthly_spending",
                 )
 
             with col5:
-                inflation_rate = st.number_input(
+                inflation_rate = st.text_input(
                     "Inflation Rate (%)",
-                    min_value=0.0,
-                    value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
-                    step=0.01,
-                    format="%.2f",
+                    value=str(
+                        st.session_state.get(
+                            "inflation_rate", DEFAULT_INFLATION_RATE
+                        )
+                    ),
                     help="Expected annual inflation rate",
                     key="inflation_rate",
                 )
 
             col6, col7 = st.columns(2)
             with col6:
-                current_holdings = st.number_input(
+                current_holdings = st.text_input(
                     "Current Bitcoin Holdings (₿)",
-                    min_value=0.0,
-                    max_value=HOLDINGS_MAX,
-                    value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
-                    step=0.00000001,
-                    format="%.8f",
+                    value=str(
+                        st.session_state.get(
+                            "current_holdings", DEFAULT_CURRENT_HOLDINGS
+                        )
+                    ),
                     help="How much Bitcoin you currently own",
                     key="current_holdings",
                 )
             with col7:
-                monthly_investment = st.number_input(
+                monthly_investment = st.text_input(
                     "Monthly Recurring Investment (USD)",
-                    min_value=0.0,
-                    value=st.session_state.get("monthly_investment", DEFAULT_MONTHLY_INVESTMENT),
-                    step=0.01,
-                    format="%.2f",
+                    value=str(
+                        st.session_state.get(
+                            "monthly_investment", DEFAULT_MONTHLY_INVESTMENT
+                        )
+                    ),
                     help="How much you invest in Bitcoin each month",
                     key="monthly_investment",
                 )
@@ -173,50 +176,72 @@ def render_calculator():
             submitted = st.form_submit_button("🧮 Calculate Retirement Plan")
             if submitted:
                 _on_input_change()
-                inputs = {
-                    "current_age": current_age,
-                    "retirement_age": retirement_age,
-                    "life_expectancy": life_expectancy,
-                    "monthly_spending": monthly_spending,
-                    "bitcoin_growth_rate": bitcoin_growth_rate,
-                    "inflation_rate": inflation_rate,
-                    "current_holdings": current_holdings,
-                    "monthly_investment": monthly_investment,
-                    "num_simulations": int(num_simulations),
-                }
-                errors = validate_form_inputs(inputs)
-                if errors:
-                    for err in errors:
+
+                parse_errors = []
+
+                def _to_float(value: str, field: str):
+                    if value is None or value.strip() == "":
+                        parse_errors.append(f"{field} is required.")
+                        return None
+                    try:
+                        return float(value)
+                    except ValueError:
+                        parse_errors.append(f"{field} must be a valid number.")
+                        return None
+
+                monthly_spending_val = _to_float(monthly_spending, "Monthly Spending")
+                inflation_rate_val = _to_float(inflation_rate, "Inflation Rate")
+                current_holdings_val = _to_float(current_holdings, "Current Bitcoin Holdings")
+                monthly_investment_val = _to_float(monthly_investment, "Monthly Recurring Investment")
+
+                if parse_errors:
+                    for err in parse_errors:
                         st.error(err)
                 else:
-                    plan, current_bitcoin_price = compute_retirement_plan(inputs)
-                    mc_results = None
-                    years = inputs["life_expectancy"] - inputs["current_age"] + 1
-                    returns = simulate_regime_shift_returns(years, int(num_simulations))
-                    paths, prob_not_run_out = simulate_holdings_paths(
-                        returns,
-                        current_age=inputs["current_age"],
-                        retirement_age=inputs["retirement_age"],
-                        current_holdings=inputs["current_holdings"],
-                        monthly_investment=inputs["monthly_investment"],
-                        monthly_spending=inputs["monthly_spending"],
-                        current_bitcoin_price=current_bitcoin_price,
-                    )
-                    mc_results = {
-                        "paths": paths,
-                        "prob_not_run_out": prob_not_run_out,
+                    inputs = {
+                        "current_age": current_age,
+                        "retirement_age": retirement_age,
+                        "life_expectancy": life_expectancy,
+                        "monthly_spending": monthly_spending_val,
+                        "bitcoin_growth_rate": bitcoin_growth_rate,
+                        "inflation_rate": inflation_rate_val,
+                        "current_holdings": current_holdings_val,
+                        "monthly_investment": monthly_investment_val,
+                        "num_simulations": int(num_simulations),
                     }
-                    st.session_state.results_data = (
-                        plan,
-                        inputs,
-                        current_bitcoin_price,
-                        mc_results,
-                    )
-                    st.session_state.results_available = True
-                    st.session_state.results_expanded = True
-                    st.session_state.calculator_expanded = False
-                    # Rerun so the updated expander states take effect immediately
-                    st.rerun()
+                    errors = validate_form_inputs(inputs)
+                    if errors:
+                        for err in errors:
+                            st.error(err)
+                    else:
+                        plan, current_bitcoin_price = compute_retirement_plan(inputs)
+                        mc_results = None
+                        years = inputs["life_expectancy"] - inputs["current_age"] + 1
+                        returns = simulate_regime_shift_returns(years, int(num_simulations))
+                        paths, prob_not_run_out = simulate_holdings_paths(
+                            returns,
+                            current_age=inputs["current_age"],
+                            retirement_age=inputs["retirement_age"],
+                            current_holdings=inputs["current_holdings"],
+                            monthly_investment=inputs["monthly_investment"],
+                            monthly_spending=inputs["monthly_spending"],
+                            current_bitcoin_price=current_bitcoin_price,
+                        )
+                        mc_results = {
+                            "paths": paths,
+                            "prob_not_run_out": prob_not_run_out,
+                        }
+                        st.session_state.results_data = (
+                            plan,
+                            inputs,
+                            current_bitcoin_price,
+                            mc_results,
+                        )
+                        st.session_state.results_available = True
+                        st.session_state.results_expanded = True
+                        st.session_state.calculator_expanded = False
+                        # Rerun so the updated expander states take effect immediately
+                        st.rerun()
 
 
 def validate_form_inputs(inputs):
