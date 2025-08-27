@@ -7,10 +7,10 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-27
 
 ### Changed
+- Update README.md
 - Update LICENSE
 - Change license from GPL-3.0 to Zero-Clause BSD.
 - Update SECURITY.md
-- Update README.md
 - Added repo status badges to README.md.
 - Create docker-compose.yml
 - Updated installation instructions and added Docker/Podman/Docker Compose support.
