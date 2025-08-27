@@ -1,7 +1,7 @@
 # Bitcoin Retirement Calculator
 A simple application to help you plan your retirement using Bitcoin as an investment vehicle. Hosted version available at [Retire On BTC](https://retireonbtc.xyz).
 
-![GitHub License](https://img.shields.io/github/license/Letdown2491/retireonbtc) ![GitHub repo size](https://img.shields.io/github/repo-size/Letdown2491/retireonbtc)
+![GitHub License](https://img.shields.io/github/license/Letdown2491/retireonbtc?style=flat) ![GitHub repo size](https://img.shields.io/github/repo-size/Letdown2491/retireonbtc)
  [![Security](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml) [![Dependabot Updates](https://github.com/Letdown2491/retireonbtc/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/Letdown2491/retireonbtc/actions/workflows/dependabot/dependabot-updates)
 
 
