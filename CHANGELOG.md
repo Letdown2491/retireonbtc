@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-27
 
 ### Changed
+- Create docker-compose.yml
 - Updated installation instructions and added Docker/Podman/Docker Compose support.
 - Added Dockerfile for initial Docker and Podman support.
 
