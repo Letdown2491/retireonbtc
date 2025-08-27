@@ -13,6 +13,7 @@ A simple application to help you plan your retirement using Bitcoin as an invest
 - Monte Carlo simulations to determine retirement plan success probability.
 - Extensive configuration and validation options to prevent calculation errors caused by invalid user inputs.
 - BTC price cached in session for snappier re-runs as well as a quick-fail option when fetching BTC price to avoid long waits on errors.
+- No tracking or telemetry of any kind.
 
 ## Getting Started
 [Retire On BTC](https://retireonbtc.xyz) can be run locally via Python or by using containerization tools like Docker or Podman. 
