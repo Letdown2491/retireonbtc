@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-26
 
 ### Changed
+- Use text inputs for monetary fields
 - Allow decimal input precision
 - Wrap calculator inputs in form
 - Display Monte Carlo simulation values in USD not BTC.
