@@ -1,6 +1,6 @@
 # Bitcoin Retirement Calculator
 
-A Streamlit application to help you plan your retirement using Bitcoin as an investment vehicle.
+A simple application to help you plan your retirement using Bitcoin as an investment vehicle. Hosted version available at [Retire On BTC](https://retireonbtc.xyz). 
 
 [![Security](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/Letdown2491/retireonbtc/actions/workflows/security.yml)
 
@@ -16,18 +16,25 @@ A Streamlit application to help you plan your retirement using Bitcoin as an inv
 
 ## Getting Started
 
-Simple head over to [Retire On BTC](https://retireonbtc.xyz) to play with it yourself, or if you prefer running the project locally:
-
-1. Clone the repository:
+### Running via Python
    ```bash
    git clone https://github.com/Letdown2491/retireonbtc.git
    cd retireonbtc
-   ```
-2. Install dependencies:
-   ```bash
    pip install -r requirements.txt
-   ```
-3. Run the application:
-   ```bash
    streamlit run main.py
+   ```
+
+### Running via Docker or Podman
+   ```bash
+   git clone https://github.com/Letdown2491/retireonbtc.git
+   cd retireonbtc
+   docker build -t retireonbtc .
+   ocker run -p 8501:8501 retireonbtc
+   ```
+
+### Running via Docker Compose
+   ```bash
+   git clone https://github.com/Letdown2491/retireonbtc.git
+   cd retireonbtc
+   docker compose up --build
    ```
