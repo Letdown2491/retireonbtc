@@ -71,151 +71,144 @@ def _on_input_change():
 
 def render_calculator():
     with st.expander("🧮 Retirement Calculator", expanded=st.session_state.calculator_expanded):
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            current_age = st.number_input(
-                "Current Age",
-                min_value=AGE_RANGE[0],
-                max_value=AGE_RANGE[1],
-                value=st.session_state.get("current_age", DEFAULT_CURRENT_AGE),
-                step=1,
-                help="Your current age in years",
-                key="current_age",
-                on_change=_on_input_change,
-            )
-        with col2:
-            retirement_age = st.number_input(
-                "Retirement Age",
-                min_value=max(int(current_age) + 1, AGE_RANGE[0]),
-                max_value=AGE_RANGE[1],
-                value=st.session_state.get("retirement_age", DEFAULT_RETIREMENT_AGE),
-                step=1,
-                help="The age at which you plan to retire",
-                key="retirement_age",
-                on_change=_on_input_change,
-            )
-        with col3:
-            life_expectancy = st.number_input(
-                "Life Expectancy",
-                min_value=max(int(retirement_age) + 1, AGE_RANGE[0]),
-                max_value=AGE_RANGE[1],
-                value=st.session_state.get("life_expectancy", DEFAULT_LIFE_EXPECTANCY),
-                step=1,
-                help="Your expected lifespan in years",
-                key="life_expectancy",
-                on_change=_on_input_change,
-            )
+        with st.form("calculator_form"):
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                current_age = st.number_input(
+                    "Current Age",
+                    min_value=AGE_RANGE[0],
+                    max_value=AGE_RANGE[1],
+                    value=st.session_state.get("current_age", DEFAULT_CURRENT_AGE),
+                    step=1,
+                    help="Your current age in years",
+                    key="current_age",
+                )
+            with col2:
+                retirement_age = st.number_input(
+                    "Retirement Age",
+                    min_value=max(int(current_age) + 1, AGE_RANGE[0]),
+                    max_value=AGE_RANGE[1],
+                    value=st.session_state.get("retirement_age", DEFAULT_RETIREMENT_AGE),
+                    step=1,
+                    help="The age at which you plan to retire",
+                    key="retirement_age",
+                )
+            with col3:
+                life_expectancy = st.number_input(
+                    "Life Expectancy",
+                    min_value=max(int(retirement_age) + 1, AGE_RANGE[0]),
+                    max_value=AGE_RANGE[1],
+                    value=st.session_state.get("life_expectancy", DEFAULT_LIFE_EXPECTANCY),
+                    step=1,
+                    help="Your expected lifespan in years",
+                    key="life_expectancy",
+                )
 
-        col4, col5 = st.columns(2)
-        with col4:
-            monthly_spending = st.number_input(
-                "Monthly Spending Needs (USD)",
-                min_value=1.0,
-                value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
-                help="Your estimated monthly expenses in retirement",
-                key="monthly_spending",
-                on_change=_on_input_change,
-            )
+            col4, col5 = st.columns(2)
+            with col4:
+                monthly_spending = st.number_input(
+                    "Monthly Spending Needs (USD)",
+                    min_value=1.0,
+                    value=st.session_state.get("monthly_spending", DEFAULT_MONTHLY_SPENDING),
+                    help="Your estimated monthly expenses in retirement",
+                    key="monthly_spending",
+                )
 
-        with col5:
-            inflation_rate = st.number_input(
-                "Inflation Rate (%)",
-                min_value=0.0,
-                value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
-                help="Expected annual inflation rate",
-                key="inflation_rate",
-                on_change=_on_input_change,
-            )
+            with col5:
+                inflation_rate = st.number_input(
+                    "Inflation Rate (%)",
+                    min_value=0.0,
+                    value=st.session_state.get("inflation_rate", DEFAULT_INFLATION_RATE),
+                    help="Expected annual inflation rate",
+                    key="inflation_rate",
+                )
 
-        col6, col7 = st.columns(2)
-        with col6:
-            current_holdings = st.number_input(
-                "Current Bitcoin Holdings (₿)",
-                min_value=0.0,
-                max_value=HOLDINGS_MAX,
-                value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
-                help="How much Bitcoin you currently own",
-                key="current_holdings",
-                on_change=_on_input_change,
-            )
-        with col7:
-            monthly_investment = st.number_input(
-                "Monthly Recurring Investment (USD)",
-                min_value=0.0,
-                value=st.session_state.get("monthly_investment", DEFAULT_MONTHLY_INVESTMENT),
-                help="How much you invest in Bitcoin each month",
-                key="monthly_investment",
-                on_change=_on_input_change,
-            )
-        
-        col8, col9 = st.columns(2)
-        with col8:
-            bitcoin_growth_rate_label = st.selectbox(
-                "Bitcoin Growth Rate Projection",
-                list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
-                index=0,
-                key="bitcoin_growth_rate_label",
-                on_change=_on_input_change,
-            )
-            bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
-        
-        with col9:
-            num_simulations = st.number_input(
-                "Number of Monte Carlo Simulations",
-                min_value=1,
-                max_value=10000,
-                step=100,
-                value=st.session_state.get("num_simulations", 1000),
-                key="num_simulations",
-                on_change=_on_input_change,
-            )
+            col6, col7 = st.columns(2)
+            with col6:
+                current_holdings = st.number_input(
+                    "Current Bitcoin Holdings (₿)",
+                    min_value=0.0,
+                    max_value=HOLDINGS_MAX,
+                    value=st.session_state.get("current_holdings", DEFAULT_CURRENT_HOLDINGS),
+                    help="How much Bitcoin you currently own",
+                    key="current_holdings",
+                )
+            with col7:
+                monthly_investment = st.number_input(
+                    "Monthly Recurring Investment (USD)",
+                    min_value=0.0,
+                    value=st.session_state.get("monthly_investment", DEFAULT_MONTHLY_INVESTMENT),
+                    help="How much you invest in Bitcoin each month",
+                    key="monthly_investment",
+                )
 
-        if st.button("🧮 Calculate Retirement Plan"):
-            inputs = {
-                "current_age": current_age,
-                "retirement_age": retirement_age,
-                "life_expectancy": life_expectancy,
-                "monthly_spending": monthly_spending,
-                "bitcoin_growth_rate": bitcoin_growth_rate,
-                "inflation_rate": inflation_rate,
-                "current_holdings": current_holdings,
-                "monthly_investment": monthly_investment,
-                "num_simulations": int(num_simulations),
-            }
-            errors = validate_form_inputs(inputs)
-            if errors:
-                for err in errors:
-                    st.error(err)
+            col8, col9 = st.columns(2)
+            with col8:
+                bitcoin_growth_rate_label = st.selectbox(
+                    "Bitcoin Growth Rate Projection",
+                    list(BITCOIN_GROWTH_RATE_OPTIONS.keys()),
+                    index=0,
+                    key="bitcoin_growth_rate_label",
+                )
+                bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
+
+            with col9:
+                num_simulations = st.number_input(
+                    "Number of Monte Carlo Simulations",
+                    min_value=1,
+                    max_value=10000,
+                    step=100,
+                    value=st.session_state.get("num_simulations", 1000),
+                    key="num_simulations",
+                )
+
+            submitted = st.form_submit_button("🧮 Calculate Retirement Plan")
+            if submitted:
                 _on_input_change()
-            else:
-                plan, current_bitcoin_price = compute_retirement_plan(inputs)
-                mc_results = None
-                years = inputs["life_expectancy"] - inputs["current_age"] + 1
-                returns = simulate_regime_shift_returns(years, int(num_simulations))
-                paths, prob_not_run_out = simulate_holdings_paths(
-                    returns,
-                    current_age=inputs["current_age"],
-                    retirement_age=inputs["retirement_age"],
-                    current_holdings=inputs["current_holdings"],
-                    monthly_investment=inputs["monthly_investment"],
-                    monthly_spending=inputs["monthly_spending"],
-                    current_bitcoin_price=current_bitcoin_price,
-                )
-                mc_results = {
-                    "paths": paths,
-                    "prob_not_run_out": prob_not_run_out,
+                inputs = {
+                    "current_age": current_age,
+                    "retirement_age": retirement_age,
+                    "life_expectancy": life_expectancy,
+                    "monthly_spending": monthly_spending,
+                    "bitcoin_growth_rate": bitcoin_growth_rate,
+                    "inflation_rate": inflation_rate,
+                    "current_holdings": current_holdings,
+                    "monthly_investment": monthly_investment,
+                    "num_simulations": int(num_simulations),
                 }
-                st.session_state.results_data = (
-                    plan,
-                    inputs,
-                    current_bitcoin_price,
-                    mc_results,
-                )
-                st.session_state.results_available = True
-                st.session_state.results_expanded = True
-                st.session_state.calculator_expanded = False
-                # Rerun so the updated expander states take effect immediately
-                st.rerun()
+                errors = validate_form_inputs(inputs)
+                if errors:
+                    for err in errors:
+                        st.error(err)
+                else:
+                    plan, current_bitcoin_price = compute_retirement_plan(inputs)
+                    mc_results = None
+                    years = inputs["life_expectancy"] - inputs["current_age"] + 1
+                    returns = simulate_regime_shift_returns(years, int(num_simulations))
+                    paths, prob_not_run_out = simulate_holdings_paths(
+                        returns,
+                        current_age=inputs["current_age"],
+                        retirement_age=inputs["retirement_age"],
+                        current_holdings=inputs["current_holdings"],
+                        monthly_investment=inputs["monthly_investment"],
+                        monthly_spending=inputs["monthly_spending"],
+                        current_bitcoin_price=current_bitcoin_price,
+                    )
+                    mc_results = {
+                        "paths": paths,
+                        "prob_not_run_out": prob_not_run_out,
+                    }
+                    st.session_state.results_data = (
+                        plan,
+                        inputs,
+                        current_bitcoin_price,
+                        mc_results,
+                    )
+                    st.session_state.results_available = True
+                    st.session_state.results_expanded = True
+                    st.session_state.calculator_expanded = False
+                    # Rerun so the updated expander states take effect immediately
+                    st.rerun()
 
 
 def validate_form_inputs(inputs):
