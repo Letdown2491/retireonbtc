@@ -7,6 +7,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-28
 
 ### Changed
+- -Added “Tax on Withdrawals (%)” field; aligned Spending, Inflation, and Tax in one 3‑column row. Deterministic BTC needed/holdings now gross up retirement expenses by 1/(1−τ). Deducts post‑retirement spending grossed up for taxes in streaming and full‑path sims. Methodology updated to document the gross‑up factor and where it applies. Expenses overlay reflects gross‑up; show_progress_visualization accepts optional tax_rate. New tax rate validation with bounds (0–60%) and <100% hard cap. Added DEFAULT_TAX_RATE, TAX_RATE_MIN, and TAX_RATE_MAX. calculate_bitcoin_needed, project_holdings_over_time, and MC functions accept tax_rate (default 0.0); internal calls updated. Resolved default‑argument order SyntaxError by moving tax_rate to the end and using keyword calls where needed.
 - Update CHANGELOG.md
 - Minor UI bugfix in Monte Carlo chart.
 - Add .gitignore to remove unnecessary files.
