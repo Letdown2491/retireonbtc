@@ -53,7 +53,7 @@ def get_bitcoin_price(
             warning messages generated during the process.
     """
     mempool_api_url = "https://mempool.space/api/v1/prices"
-    timeout = 10  # seconds
+    timeout = 5  # seconds
     warnings = []
 
     with requests.Session() as session:

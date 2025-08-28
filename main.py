@@ -1,7 +1,6 @@
 # main.py
 import streamlit as st
-import time
-from datetime import datetime
+import numpy as np
 from utils import get_bitcoin_price, initialize_session_state
 from calculations import (
     calculate_bitcoin_needed,
@@ -10,11 +9,12 @@ from calculations import (
 )
 from simulation import (
     simulate_regime_shift_returns,
-    simulate_holdings_paths,
+    simulate_percentiles_and_prob,
 )
 from validation import validate_inputs
 from config import (
     BITCOIN_GROWTH_RATE_OPTIONS,
+    BITCOIN_PRICE_TTL,
     DEFAULT_CURRENT_AGE,
     DEFAULT_RETIREMENT_AGE,
     DEFAULT_LIFE_EXPECTANCY,
@@ -22,7 +22,17 @@ from config import (
     DEFAULT_INFLATION_RATE,
     DEFAULT_CURRENT_HOLDINGS,
     DEFAULT_MONTHLY_INVESTMENT,
+    SPENDING_MIN,
+    SPENDING_STEP,
+    RATE_MIN,
+    INFLATION_STEP,
+    INFLATION_MAX,
     HOLDINGS_MAX,
+    HOLDINGS_STEP,
+    INVESTMENT_STEP,
+    SIM_FAST,
+    SIM_ACCURATE,
+    FAST_MODE_SEED,
     AGE_RANGE,
 )
 from visualization import show_progress_visualization, show_fan_chart
@@ -45,9 +55,6 @@ st.markdown("""
   </style>
 """, unsafe_allow_html=True)
 
-BITCOIN_PRICE_TTL = 300
-
-
 @st.cache_data(ttl=BITCOIN_PRICE_TTL)
 # Cache the Bitcoin price for 5 minutes to reduce API calls
 def cached_get_bitcoin_price(quick_fail: bool = False):
@@ -67,6 +74,56 @@ def _on_input_change():
     st.session_state.calculator_expanded = True
     st.session_state.results_expanded = False
     st.session_state.results_available = False
+
+
+@st.cache_data
+def _cached_calculate_bitcoin_needed(
+    monthly_spending: float,
+    current_age: int,
+    retirement_age: int,
+    life_expectancy: int,
+    bitcoin_growth_rate: float,
+    inflation_rate: float,
+    current_holdings: float,
+    monthly_investment: float,
+    current_bitcoin_price: float,
+):
+    return calculate_bitcoin_needed(
+        monthly_spending,
+        current_age,
+        retirement_age,
+        life_expectancy,
+        bitcoin_growth_rate,
+        inflation_rate,
+        current_holdings,
+        monthly_investment,
+        current_bitcoin_price,
+    )
+
+
+@st.cache_data
+def _cached_project_holdings_over_time(
+    current_age: int,
+    retirement_age: int,
+    life_expectancy: int,
+    bitcoin_growth_rate: float,
+    inflation_rate: float,
+    current_holdings: float,
+    monthly_investment: float,
+    monthly_spending: float,
+    current_bitcoin_price: float,
+):
+    return project_holdings_over_time(
+        current_age=current_age,
+        retirement_age=retirement_age,
+        life_expectancy=life_expectancy,
+        bitcoin_growth_rate=bitcoin_growth_rate,
+        inflation_rate=inflation_rate,
+        current_holdings=current_holdings,
+        monthly_investment=monthly_investment,
+        monthly_spending=monthly_spending,
+        current_bitcoin_price=current_bitcoin_price,
+    )
 
 
 def render_calculator():
@@ -164,13 +221,12 @@ def render_calculator():
                 bitcoin_growth_rate = BITCOIN_GROWTH_RATE_OPTIONS[bitcoin_growth_rate_label]
 
             with col9:
-                num_simulations = st.number_input(
-                    "Number of Monte Carlo Simulations",
-                    min_value=1,
-                    max_value=10000,
-                    step=100,
-                    value=st.session_state.get("num_simulations", 1000),
-                    key="num_simulations",
+                simulation_mode = st.selectbox(
+                    "Monte Carlo Simulation Mode",
+                    ["Fast", "Accurate"],
+                    index=0,
+                    key="simulation_mode",
+                    help=f"Fast = {SIM_FAST} simulations, Accurate = {SIM_ACCURATE} simulations",
                 )
 
             submitted = st.form_submit_button("🧮 Calculate Retirement Plan")
@@ -207,7 +263,7 @@ def render_calculator():
                         "inflation_rate": inflation_rate_val,
                         "current_holdings": current_holdings_val,
                         "monthly_investment": monthly_investment_val,
-                        "num_simulations": int(num_simulations),
+                        "simulation_mode": simulation_mode,
                     }
                     errors = validate_form_inputs(inputs)
                     if errors:
@@ -215,10 +271,11 @@ def render_calculator():
                             st.error(err)
                     else:
                         plan, current_bitcoin_price = compute_retirement_plan(inputs)
-                        mc_results = None
                         years = inputs["life_expectancy"] - inputs["current_age"] + 1
-                        returns = simulate_regime_shift_returns(years, int(num_simulations))
-                        paths, prob_not_run_out = simulate_holdings_paths(
+                        n_sims = (1000 if simulation_mode == "Fast" else 10000)
+                        seed = (42 if simulation_mode == "Fast" else None)
+                        returns = simulate_regime_shift_returns(years, n_sims, seed=seed)
+                        pct, prob_not_run_out = simulate_percentiles_and_prob(
                             returns,
                             current_age=inputs["current_age"],
                             retirement_age=inputs["retirement_age"],
@@ -228,8 +285,9 @@ def render_calculator():
                             current_bitcoin_price=current_bitcoin_price,
                         )
                         mc_results = {
-                            "paths": paths,
+                            "percentiles": pct,
                             "prob_not_run_out": prob_not_run_out,
+                            "n_sims": n_sims,
                         }
                         st.session_state.results_data = (
                             plan,
@@ -261,20 +319,12 @@ def compute_retirement_plan(inputs):
     with st.spinner("Calculating your retirement plan..."):
         st.session_state.last_inputs = inputs
 
-        refresh_needed = (
-            "cached_price" not in st.session_state
-            or "cached_price_timestamp" not in st.session_state
-            or time.time() - st.session_state["cached_price_timestamp"] > BITCOIN_PRICE_TTL
-        )
-        if refresh_needed:
-            st.session_state["cached_price"] = cached_get_bitcoin_price(quick_fail=True)
-            st.session_state["cached_price_timestamp"] = time.time()
-
-        current_bitcoin_price, price_warnings = st.session_state["cached_price"]
+        # Use Streamlit's cache directly; avoid manual TTL in session state
+        current_bitcoin_price, price_warnings = cached_get_bitcoin_price(quick_fail=True)
         for warning_msg in price_warnings:
             st.warning(warning_msg)
 
-        plan = calculate_bitcoin_needed(
+        plan = _cached_calculate_bitcoin_needed(
             inputs["monthly_spending"],
             inputs["current_age"],
             inputs["retirement_age"],
@@ -302,7 +352,7 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
     years_until_retirement = inputs["retirement_age"] - inputs["current_age"]
     retirement_duration = life_expectancy - inputs["retirement_age"]
 
-    holdings_series = project_holdings_over_time(
+    holdings_series = _cached_project_holdings_over_time(
         current_age=inputs["current_age"],
         retirement_age=inputs["retirement_age"],
         life_expectancy=life_expectancy,
@@ -358,10 +408,16 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
     
     if mc_results:
         prob_not_run_out = mc_results.get("prob_not_run_out")
-        if prob_not_run_out is not None:
-            f"Based on the Monte Carlo simulations, the probability that you will have enough Bitcoin to cover your expenses is {prob_not_run_out:.2%}."
+        n_sims_msg = mc_results.get("n_sims")
+        if prob_not_run_out is not None and n_sims_msg:
+            st.info(
+                f"Based on {n_sims_msg} Monte Carlo simulations, the probability that you will have enough Bitcoin to cover your expenses is {prob_not_run_out:.2%}."
+            )
+        percentiles = mc_results.get("percentiles")
         paths = mc_results.get("paths")
-        if paths is not None:
+        if percentiles is not None:
+            show_fan_chart(percentiles, inputs["current_age"])
+        elif paths is not None:
             show_fan_chart(paths, inputs["current_age"])
 
     st.info(
@@ -410,10 +466,7 @@ def main():
         unsafe_allow_html=True,
     )
     initialize_session_state()
-    if "cached_price" not in st.session_state:
-        st.session_state["cached_price"] = cached_get_bitcoin_price(quick_fail=True)
-        st.session_state["cached_price_timestamp"] = time.time()
-    price, _msgs = st.session_state["cached_price"]
+    price, _msgs = cached_get_bitcoin_price(quick_fail=True)
     st.markdown(
         f"**Current Bitcoin Price:** \\${float(price):,.2f}"
     )

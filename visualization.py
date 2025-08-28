@@ -124,19 +124,30 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
     if paths is None:
         return
 
-    arr = np.asarray(paths, dtype=float)
-    # Accept a single path of shape (years,) by upcasting to 2-D
-    if arr.ndim == 1:
-        arr = arr[np.newaxis, :]
-    if arr.ndim != 2 or arr.shape[1] == 0:
-        return
+    # Support either raw paths array or a precomputed percentiles dict
+    if isinstance(paths, dict) and all(k in paths for k in ("p10", "p25", "p50", "p75")):
+        # Precomputed percentiles
+        labels = ["p10", "p25", "p50", "p75"]
+        # Infer years from any series length
+        years = len(paths[labels[0]])
+        ages = np.arange(start_age, start_age + years)
+        df = pd.DataFrame({"Age": ages})
+        for lab in labels:
+            df[lab] = np.asarray(paths[lab], dtype=float)
+    else:
+        arr = np.asarray(paths, dtype=float)
+        # Accept a single path of shape (years,) by upcasting to 2-D
+        if arr.ndim == 1:
+            arr = arr[np.newaxis, :]
+        if arr.ndim != 2 or arr.shape[1] == 0:
+            return
 
-    ages = np.arange(start_age, start_age + arr.shape[1])
-    percentiles = np.percentile(arr, [10, 25, 50, 75], axis=0)
-    labels = ["p10", "p25", "p50", "p75"]
-    df = pd.DataFrame({"Age": ages})
-    for lab, series in zip(labels, percentiles):
-        df[lab] = series
+        ages = np.arange(start_age, start_age + arr.shape[1])
+        percentiles = np.percentile(arr, [10, 25, 50, 75], axis=0)
+        labels = ["p10", "p25", "p50", "p75"]
+        df = pd.DataFrame({"Age": ages})
+        for lab, series in zip(labels, percentiles):
+            df[lab] = series
 
     fig = px.line(df, x="Age", y=labels)
 

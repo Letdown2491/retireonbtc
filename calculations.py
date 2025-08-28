@@ -44,10 +44,12 @@ def calculate_future_value(
             annual_growth_rate = 0
         else:
             annual_growth_rate = (growth_factor ** (1 / years) - 1) * 100
-    if annual_growth_rate == 0:
-        return monthly_investment * years * 12
-    monthly_rate = annual_growth_rate / 100 / 12
-    return monthly_investment * (((1 + monthly_rate) ** (years * 12) - 1) / monthly_rate) * (1 + monthly_rate)
+    monthly_rate = (annual_growth_rate or 0) / 100 / 12
+    n = years * 12
+    # Stable handling near zero interest to avoid catastrophic cancellation
+    if abs(monthly_rate) < 1e-12:
+        return monthly_investment * n
+    return monthly_investment * (((1 + monthly_rate) ** n - 1) / monthly_rate) * (1 + monthly_rate)
 
 
 def calculate_total_future_expenses(annual_expense, years, inflation_rate):
@@ -265,4 +267,3 @@ def health_score_from_outputs(
         "btc_needed": btc_needed_at_retirement,
     }
     return score, details
-
