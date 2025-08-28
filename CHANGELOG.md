@@ -13,6 +13,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 ## 2025-08-27
 
 ### Changed
+- Delete __pycache__ directory
 - Delete .vscode directory
 - Update CHANGELOG.md
 
