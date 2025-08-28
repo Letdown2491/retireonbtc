@@ -171,6 +171,12 @@ def simulate_holdings_paths(
         else np.empty((n_sims, 0), dtype=np.float32)
     )
     gross = np.float32(1.0) / np.float32(max(1e-6, 1.0 - (tax_rate / 100.0)))
+    invest_usd_annual = np.float32(monthly_investment) * np.float32(12.0)
+    spend_usd_annual_gross = np.float32(monthly_spending) * np.float32(12.0) * gross
+    invest_usd_annual = np.float32(monthly_investment) * np.float32(12.0)
+    spend_usd_annual_gross = np.float32(monthly_spending) * np.float32(12.0) * gross
+    invest_usd_annual = np.float32(monthly_investment) * np.float32(12.0)
+    spend_usd_annual_gross = np.float32(monthly_spending) * np.float32(12.0) * gross
     spend_btc = (
         (np.float32(monthly_spending) * 12.0) * gross / prices[:, years_until_retirement:]
         if years_until_retirement < years
@@ -223,25 +229,35 @@ def simulate_percentiles_and_prob(
     years_until_retirement = retirement_age - current_age
     alive = np.ones(n_sims, dtype=bool)
 
-    # Accumulate percentile series
-    pct_series = {f"p{p}": [] for p in percentiles}
+    # Accumulate percentile series (if requested)
+    want_percentiles = bool(percentiles)
+    pct_series = {f"p{p}": [] for p in percentiles} if want_percentiles else {}
 
     gross = np.float32(1.0) / np.float32(max(1e-6, 1.0 - (tax_rate / 100.0)))
+    invest_usd_annual = np.float32(monthly_investment) * np.float32(12.0)
+    spend_usd_annual_gross = np.float32(monthly_spending) * np.float32(12.0) * gross
     for t in range(years):
         # Update holdings pre/post retirement using current price
         if t < years_until_retirement:
-            h = h + (np.float32(monthly_investment) * 12.0) / price
+            h = h + (invest_usd_annual / price)
         else:
-            h = np.maximum(h - (np.float32(monthly_spending) * 12.0) * gross / price, 0.0)
+            h = np.maximum(h - (spend_usd_annual_gross / price), 0.0)
             alive &= (h > 0)
 
         # Update price (end-of-period growth) for next step
         price = price * rf[:, t]
 
-        # Compute USD value and append percentiles for this year
-        values_t = h * price
-        for p in percentiles:
-            pct_series[f"p{p}"].append(float(np.percentile(values_t, p)))
+        # Compute and append percentiles if requested
+        if want_percentiles:
+            values_t = h * price
+            qs = np.array(percentiles, dtype=float)
+            pct_vals = np.percentile(values_t, qs, axis=0)
+            # When a single percentile is requested, np.percentile returns a scalar
+            if np.ndim(pct_vals) == 0:
+                pct_series[f"p{int(qs)}"].append(float(pct_vals))
+            else:
+                for p, v in zip(percentiles, pct_vals):
+                    pct_series[f"p{p}"].append(float(v))
 
     prob_not_run_out = float(np.mean(alive)) if years_until_retirement < years else 1.0
     return pct_series, prob_not_run_out

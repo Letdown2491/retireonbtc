@@ -54,6 +54,7 @@ from config import (
 )
 from visualization import show_progress_visualization, show_fan_chart
 from math import isfinite
+from functools import lru_cache
 
 
 def _round_dollars(x: float, step: int = 10) -> int:
@@ -94,6 +95,7 @@ def _recommend_adjustments(
             target_arith_return_pct=float(inputs.get("bitcoin_growth_rate", 10.0)),
         )
 
+        @lru_cache(maxsize=256)
         def eval_prob(
             monthly_investment_delta: float = 0.0,
             retirement_age_delta_years: int = 0,
@@ -117,6 +119,7 @@ def _recommend_adjustments(
                 monthly_spending=monthly_spending,
                 tax_rate=float(inputs.get("tax_rate", 0.0)),
                 current_bitcoin_price=current_bitcoin_price,
+                percentiles=(),  # skip percentile work for optimizer
             )
             return float(p)
 
@@ -490,6 +493,21 @@ def _cached_project_holdings_over_time(
     )
 
 
+@st.cache_data
+def _cached_halving_returns(
+    years: int,
+    n_sims: int,
+    seed: int,
+    target_arith_return_pct: float,
+):
+    return generate_halving_returns(
+        years,
+        n_sims,
+        seed=seed,
+        target_arith_return_pct=target_arith_return_pct,
+    )
+
+
 def render_calculator():
     with st.expander("🧮 Retirement Calculator", expanded=st.session_state.calculator_expanded):
         with st.form("calculator_form"):
@@ -652,12 +670,17 @@ def render_calculator():
                         years = inputs["life_expectancy"] - inputs["current_age"] + 1
                         n_sims = (1000 if simulation_mode == "Fast" else 10000)
                         seed = (42 if simulation_mode == "Fast" else None)
-                        returns = generate_halving_returns(
-                            years,
-                            n_sims,
-                            seed=seed,
-                            target_arith_return_pct=float(inputs.get("bitcoin_growth_rate", 10.0)),
-                        )
+                        target_ar = float(inputs.get("bitcoin_growth_rate", 10.0))
+                        if seed is not None:
+                            # Cache Fast mode to speed up reruns
+                            returns = _cached_halving_returns(years, n_sims, seed, target_ar)
+                        else:
+                            returns = generate_halving_returns(
+                                years,
+                                n_sims,
+                                seed=seed,
+                                target_arith_return_pct=target_ar,
+                            )
                         pct, prob_not_run_out = simulate_percentiles_and_prob(
                             returns,
                             current_age=inputs["current_age"],

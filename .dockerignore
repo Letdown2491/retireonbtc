@@ -1,0 +1,26 @@
+# Reduce Docker build context size
+.git
+.github
+__pycache__
+.pytest_cache
+.devcontainer
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swp~
+*.DS_Store
+
+# Local/editor/system files
+.vscode
+.idea
+.history
+
+# Test and docs not needed in runtime image
+tests
+README.md
+CHANGELOG.md
+SECURITY.md
+LICENSE
+Dockerfile
+docker-compose.yml

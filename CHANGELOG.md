@@ -12,6 +12,7 @@ This project loosely follows the spirit of Keep a Changelog and Semantic Version
 - Minor UI bugfix in Monte Carlo chart.
 - Add .gitignore to remove unnecessary files.
 - -Seeded Fast mode for determinism; Accurate uses fresh randomness -Computed/stored only p10/p25/p50/p75 percentiles and success probability (no full paths) -Implemented streaming percentiles function simulate_percentiles_and_prob -Simplified BTC price caching to use @st.cache_data with BITCOIN_PRICE_TTL -Cached calculate_bitcoin_needed and project_holdings_over_time for faster reruns -Switched simulation arrays to float32 to reduce memory/CPU -Stabilized calculate_future_value for near‑zero rates -Reduced price fetch timeout from 10s to 5s -Updated show_fan_chart to accept precomputed percentiles -Reverted spending, inflation, holdings, investment to st.text_input with parsing (Streamlit 1.49 workaround) -Replaced numeric simulation count input with mode selector -Centralized config: BITCOIN_PRICE_TTL, SIM_FAST, SIM_ACCURATE, FAST_MODE_SEED, SPENDING_STEP, INFLATION_STEP, INFLATION_MAX, HOLDINGS_STEP, INVESTMENT_STEP -Removed unused matplotlib from requirements -Cleaned imports and references after refactors
+- Optimized recommendation optimizer: skip percentile calculations when only probability is needed and memoize evaluations; significant CPU savings during search without changing results.
 
 ## 2025-08-27
 
