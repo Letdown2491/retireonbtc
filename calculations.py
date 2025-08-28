@@ -70,6 +70,7 @@ def calculate_bitcoin_needed(
     current_holdings,
     monthly_investment,
     current_bitcoin_price,
+    tax_rate: float = 0.0,
 ) -> RetirementPlan:
     """Calculate the Bitcoin needed for retirement considering inflation and growth rates"""
 
@@ -93,7 +94,8 @@ def calculate_bitcoin_needed(
         years_until_retirement, years_until_retirement + retirement_duration
     )
     projected_prices = current_bitcoin_price * growth_factor ** retirement_years
-    yearly_expenses = monthly_spending * 12 * inflation_multiplier ** retirement_years
+    gross = 1.0 / max(1e-6, 1.0 - tax_rate / 100.0)
+    yearly_expenses = (monthly_spending * 12 * inflation_multiplier ** retirement_years) * gross
 
     # Sum yearly BTC requirements to find total Bitcoin needed
     bitcoin_needed = float(np.sum(yearly_expenses / projected_prices))
@@ -135,6 +137,7 @@ def project_holdings_over_time(
     monthly_investment: float,
     monthly_spending: float,
     current_bitcoin_price: float,
+    tax_rate: float = 0.0,
 ) -> list[float]:
     """Project Bitcoin holdings for each year.
 
@@ -183,7 +186,8 @@ def project_holdings_over_time(
     expense_factors = np.cumprod(
         np.r_[1, np.full(max(post_retirement_years - 1, 0), inflation_multiplier)]
     )
-    expenses_after_retirement = annual_expense_at_retirement * expense_factors
+    gross = 1.0 / max(1e-6, 1.0 - tax_rate / 100.0)
+    expenses_after_retirement = (annual_expense_at_retirement * expense_factors) * gross
     expenses_usd = np.concatenate(
         [np.zeros(pre_retirement_years), expenses_after_retirement]
     )

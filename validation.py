@@ -1,8 +1,9 @@
 # validation.py
-from config import AGE_RANGE, SPENDING_MIN, RATE_MIN, HOLDINGS_MAX
+from config import AGE_RANGE, SPENDING_MIN, RATE_MIN, HOLDINGS_MAX, TAX_RATE_MIN, TAX_RATE_MAX
 
 def validate_inputs(current_age, retirement_age, life_expectancy, monthly_spending,
-                   bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment):
+                   bitcoin_growth_rate, inflation_rate, current_holdings, monthly_investment,
+                   tax_rate: float = 0.0):
     """Validate all user inputs and return any errors found"""
     errors = []
 
@@ -32,5 +33,10 @@ def validate_inputs(current_age, retirement_age, life_expectancy, monthly_spendi
 
     # Zero monthly investment is allowed regardless of growth rate. Negative
     # values remain invalid and are handled above.
+
+    if not (TAX_RATE_MIN <= tax_rate <= TAX_RATE_MAX):
+        errors.append(f"Tax rate must be between {TAX_RATE_MIN} and {TAX_RATE_MAX}")
+    if tax_rate >= 100:
+        errors.append("Tax rate must be less than 100%")
 
     return errors

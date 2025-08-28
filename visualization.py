@@ -16,6 +16,7 @@ def show_progress_visualization(
     life_expectancy: int | None = None,
     bitcoin_growth_rate: float | None = None,
     inflation_rate: float | None = None,
+    tax_rate: float | None = None,
     current_holdings: float | None = None,
     monthly_investment: float | None = None,
     monthly_spending: float | None = None,
@@ -45,16 +46,18 @@ def show_progress_visualization(
             raise ValueError("Missing parameters for holdings projection")
 
         ages = list(range(current_age, life_expectancy + 1))
+        tax_rate_val = 0.0 if tax_rate is None else tax_rate
         holdings = project_holdings_over_time(
-            current_age,
-            retirement_age,
-            life_expectancy,
-            bitcoin_growth_rate,
-            inflation_rate,
-            current_holdings,
-            monthly_investment,
-            monthly_spending,
-            current_bitcoin_price,
+            current_age=current_age,
+            retirement_age=retirement_age,
+            life_expectancy=life_expectancy,
+            bitcoin_growth_rate=bitcoin_growth_rate,
+            inflation_rate=inflation_rate,
+            current_holdings=current_holdings,
+            monthly_investment=monthly_investment,
+            monthly_spending=monthly_spending,
+            current_bitcoin_price=current_bitcoin_price,
+            tax_rate=tax_rate_val,
         )
     else:
         if isinstance(holdings, pd.Series):
@@ -71,6 +74,7 @@ def show_progress_visualization(
     expenses_inputs = [
         monthly_spending,
         inflation_rate,
+        tax_rate,
         current_bitcoin_price,
         bitcoin_growth_rate,
     ]
@@ -78,9 +82,10 @@ def show_progress_visualization(
         price_series = current_bitcoin_price * (
             1 + bitcoin_growth_rate / 100
         ) ** np.arange(len(ages))
-        expenses_usd = monthly_spending * 12 * (
+        gross = 1.0 / max(1e-6, 1.0 - (tax_rate or 0.0) / 100.0)
+        expenses_usd = (monthly_spending * 12) * (
             1 + inflation_rate / 100
-        ) ** np.arange(len(ages))
+        ) ** np.arange(len(ages)) * gross
         expenses_btc = expenses_usd / price_series
         df["Expenses (₿)"] = expenses_btc
         y = ["Holdings (₿)", "Expenses (₿)"]
@@ -102,7 +107,21 @@ def show_progress_visualization(
             fill="tozeroy",
             fillcolor="rgba(253, 150, 68, 0.2)",
         )
-    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0), showlegend=False)
+    fig.update_layout(margin=dict(t=0, b=0, l=0, r=0),
+                      showlegend=True,
+                      yaxis_title="Value (₿)",
+                      legend_title_text="",
+                      legend=dict(
+                        orientation="h",
+                        x=0.5,
+                        y=0.9,
+                        xanchor="center",
+                        yanchor="middle",
+                        bgcolor="rgba(255,255,255,0.1)",
+                        bordercolor="rgba(0,0,0,0.1)",
+                        borderwidth=1,
+                      ),
+                      )
     st.plotly_chart(
         fig,
         use_container_width=True,
@@ -125,9 +144,12 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
         return
 
     # Support either raw paths array or a precomputed percentiles dict
-    if isinstance(paths, dict) and all(k in paths for k in ("p10", "p25", "p50", "p75")):
-        # Precomputed percentiles
-        labels = ["p10", "p25", "p50", "p75"]
+    if isinstance(paths, dict):
+        # Accept available labels among p10, p25, p50, p75 (in that order)
+        desired_order = ["p10", "p25", "p50", "p75"]
+        labels = [lab for lab in desired_order if lab in paths]
+        if not labels:
+            return
         # Infer years from any series length
         years = len(paths[labels[0]])
         ages = np.arange(start_age, start_age + years)
@@ -143,8 +165,8 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
             return
 
         ages = np.arange(start_age, start_age + arr.shape[1])
-        percentiles = np.percentile(arr, [10, 25, 50, 75], axis=0)
-        labels = ["p10", "p25", "p50", "p75"]
+        percentiles = np.percentile(arr, [10, 25, 50], axis=0)
+        labels = ["p10", "p25", "p50"]
         df = pd.DataFrame({"Age": ages})
         for lab, series in zip(labels, percentiles):
             df[lab] = series
@@ -164,7 +186,20 @@ def show_fan_chart(paths: Sequence | None, start_age: int) -> None:
         trace.fillcolor = f"rgba({r}, {g}, {b}, 0.2)"
 
     fig.update_layout(
-        margin=dict(t=0, b=0, l=0, r=0), showlegend=False, yaxis_title="Value (USD)"
+        margin=dict(t=0, b=0, l=0, r=0),
+        showlegend=True,
+        yaxis_title="Value (USD)",
+        legend_title_text="",
+        legend=dict(
+            orientation="h",
+            x=0.5,
+            y=0.9,
+            xanchor="center",
+            yanchor="middle",
+            bgcolor="rgba(255,255,255,0.1)",
+            bordercolor="rgba(0,0,0,0.1)",
+            borderwidth=1,
+        ),
     )
     st.plotly_chart(fig)
 

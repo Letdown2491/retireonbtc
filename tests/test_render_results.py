@@ -49,8 +49,11 @@ def test_render_results_returns_health_score(monkeypatch):
         "inflation_rate": 0.0,
         "current_holdings": 0.0,
         "monthly_investment": 0.0,
-        "monthly_spending": 0.0,
+        # Set spending so needed BTC over 2 retirement years equals 2.0 when price=1
+        # Needed = (monthly_spending*12) * 2 => choose monthly_spending = 1/12
+        "monthly_spending": 1.0/12.0,
     }
     score, details = main.render_results(plan, inputs, 1.0, None)
-    assert score == compute_health_score_basic(1.5, 2)
-    assert details["funding_ratio"] == 1.5
+    # With chart-based holdings at retirement = 2 and btc_needed=2
+    assert score == compute_health_score_basic(1.0, 2)
+    assert details["funding_ratio"] == 1.0
