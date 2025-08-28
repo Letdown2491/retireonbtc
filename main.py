@@ -410,7 +410,7 @@ def render_results(plan, inputs, current_bitcoin_price, mc_results=None):
         prob_not_run_out = mc_results.get("prob_not_run_out")
         n_sims_msg = mc_results.get("n_sims")
         if prob_not_run_out is not None and n_sims_msg:
-            st.info(
+            st.write(
                 f"Based on {n_sims_msg} Monte Carlo simulations, the probability that you will have enough Bitcoin to cover your expenses is {prob_not_run_out:.2%}."
             )
         percentiles = mc_results.get("percentiles")
